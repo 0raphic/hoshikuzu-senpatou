@@ -110,7 +110,9 @@ const statusRows = [
       <section class="home-section" aria-labelledby="latest-notes">
         <SectionHead title="碎碎念" en="NOTES" icon="…" href="/notes/" />
         <div class="mini-list">
-          {latestNotes.map((note) => <PostCard post={note} variant="compact" />)}
+          {latestNotes.map((note) => (
+            <PostCard post={note} variant="compact" href={`/notes/#${note.id}`} />
+          ))}
         </div>
       </section>
 

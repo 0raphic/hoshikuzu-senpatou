@@ -50,7 +50,7 @@ for (const note of notes) moodCount.set(note.data.mood, (moodCount.get(note.data
     <ol class="timeline">
       {
         rendered.map(({ note, Content }) => (
-          <li class="timeline__item" data-mood={note.data.mood}>
+          <li class="timeline__item" id={note.id} data-mood={note.data.mood}>
             <article class:list={['note-card', note.data.pinned && 'note-card--pinned']}>
               <div class="note-card__head">
                 <span class="note-card__mood">
@@ -81,3 +81,9 @@ for (const note of notes) moodCount.set(note.data.mood, (moodCount.get(note.data
     </p>
   </div>
 </BaseLayout>
+
+<style>
+  .timeline__item {
+    scroll-margin-top: 120px;
+  }
+</style>

@@ -6,13 +6,15 @@ interface Props {
   /** compact 用于侧栏列表，wide 用于横跨整行的卡片 */
   variant?: 'default' | 'compact' | 'wide';
   showNew?: boolean;
+  /** 自定义链接（碎碎念等非博客集合需要指到别的地址） */
+  href?: string;
 }
 
 const { post, variant = 'default', showNew = true } = Astro.props;
 const minutes = readingTime(post.body ?? '', post.data.minutes);
 const fresh = showNew && isNew(post.data.date);
 const cover = post.data.cover ?? '/img/covers/default.png';
-const href = `/blog/${post.id}/`;
+const href = Astro.props.href ?? `/blog/${post.id}/`;
 ---
 
 {variant === 'compact' ? (
