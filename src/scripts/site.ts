@@ -1100,6 +1100,85 @@ function initExternalLinks(): void {
   });
 }
 
+/* ============================================================
+ * 9. 标签页标题彩蛋（切走时碎碎念，回来时打招呼）
+ * ========================================================== */
+
+function initTabTitle(): void {
+  const original = document.title;
+  if (!original) return;
+
+  const AWAY_LINES = [
+    '(´･ω･`) 电波断了…',
+    '喂——信号还在吗？',
+    '月面观测站 · 0 人在线',
+    '这里有点冷，快点开我',
+    '碎碎念又更新了哦',
+    '(；´Д`) 别走那么久嘛',
+  ];
+  const WELCOME = 'おかえりなさい ✦';
+  const INTERVAL = 2800;
+  const WELCOME_HOLD = 1500;
+
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let timer = 0;
+  let restoreTimer = 0;
+  let index = 0;
+  let cycling = false;
+
+  const stopCycling = (): void => {
+    if (timer) {
+      window.clearInterval(timer);
+      timer = 0;
+    }
+    cycling = false;
+  };
+
+  const startCycling = (): void => {
+    if (cycling) return;
+    cycling = true;
+    index = 0;
+    document.title = AWAY_LINES[0];
+    if (calm) return;
+    timer = window.setInterval(() => {
+      index = (index + 1) % AWAY_LINES.length;
+      document.title = AWAY_LINES[index];
+    }, INTERVAL);
+  };
+
+  const handleAway = (): void => {
+    if (restoreTimer) {
+      window.clearTimeout(restoreTimer);
+      restoreTimer = 0;
+    }
+    startCycling();
+  };
+
+  const handleBack = (): void => {
+    if (!cycling) return;
+    stopCycling();
+    document.title = WELCOME;
+    restoreTimer = window.setTimeout(() => {
+      document.title = original;
+      restoreTimer = 0;
+    }, WELCOME_HOLD);
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) handleAway();
+    else handleBack();
+  });
+
+  // 某些浏览器/双窗口场景下 visibilitychange 不触发，用 blur 兜底
+  window.addEventListener('blur', () => {
+    if (!document.hidden) return;
+    handleAway();
+  });
+  window.addEventListener('focus', () => {
+    if (!document.hidden) handleBack();
+  });
+}
+
 function init(): void {
   document.body.classList.add('js');
   const modules: Array<[string, () => void]> = [
@@ -1115,6 +1194,7 @@ function init(): void {
     ['copy', initCopyButtons],
     ['visitor-counter', initVisitorCounter],
     ['external-links', initExternalLinks],
+    ['tab-title', initTabTitle],
   ];
   modules.forEach(([name, fn]) => {
     try {
