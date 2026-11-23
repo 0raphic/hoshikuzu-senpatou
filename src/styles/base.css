@@ -16,33 +16,33 @@
   --font-body: 'Noto Sans SC', 'Microsoft YaHei', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
   --font-mono: 'Cascadia Code', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
 
-  --bg-deep: #0a0618;
-  --bg: #120a2a;
-  --bg-2: #1b0f3a;
-  --bg-3: #251245;
-  --panel: #1a1038;
-  --panel-2: #24164a;
-  --panel-3: #2e1c5c;
-  --ink: #ece6ff;
-  --ink-strong: #fff8ff;
-  --muted: #a99bd6;
-  --faint: #7d6cb0;
-  --line: #483579;
-  --line-bright: #8a6dff;
-  --pink: #ff7ad9;
-  --hotpink: #ff3d9a;
-  --cyan: #79e6ff;
-  --violet: #a98bff;
-  --mint: #a6ffcb;
-  --yellow: #ffe08a;
-  --orange: #ffb86b;
-  --red: #ff6b7f;
-  --shadow: #05030f;
-  --shadow-soft: rgba(5, 3, 15, 0.55);
-  --glow-pink: rgba(255, 61, 154, 0.35);
-  --glow-cyan: rgba(121, 230, 255, 0.28);
+  --bg-deep: #0b0719;
+  --bg: #140c2b;
+  --bg-2: #1d1239;
+  --bg-3: #271747;
+  --panel: #1d1440;
+  --panel-2: #271b4e;
+  --panel-3: #32215f;
+  --ink: #e8e3f9;
+  --ink-strong: #fdf7ff;
+  --muted: #aca0d5;
+  --faint: #8679b9;
+  --line: #453a6e;
+  --line-bright: #7b68c9;
+  --pink: #f4a3d8;
+  --hotpink: #ea7bb4;
+  --cyan: #96e2f4;
+  --violet: #ad9ceb;
+  --mint: #b2ecc9;
+  --yellow: #f6dfa6;
+  --orange: #f3bf8b;
+  --red: #ef94a2;
+  --shadow: #080515;
+  --shadow-soft: rgba(8, 5, 21, 0.5);
+  --glow-pink: rgba(234, 123, 180, 0.18);
+  --glow-cyan: rgba(150, 226, 244, 0.14);
 
-  --radius: 0px;
+  --radius: 2px;
   --shell: 1160px;
   --border: 2px solid var(--line-bright);
 }
@@ -61,18 +61,18 @@ html[data-theme='day'] {
   --faint: #9b8ab8;
   --line: #c9b7ef;
   --line-bright: #6c42b8;
-  --pink: #e8468f;
-  --hotpink: #d92f7d;
-  --cyan: #1b8fbe;
-  --violet: #7b4bd8;
-  --mint: #2c9b63;
-  --yellow: #b07d00;
-  --orange: #c2691a;
-  --red: #c9304a;
-  --shadow: #3c2560;
-  --shadow-soft: rgba(60, 37, 96, 0.25);
-  --glow-pink: rgba(232, 70, 143, 0.2);
-  --glow-cyan: rgba(27, 143, 190, 0.16);
+  --pink: #dd5d9c;
+  --hotpink: #cf4a8b;
+  --cyan: #2b86ac;
+  --violet: #7f63c4;
+  --mint: #4a9268;
+  --yellow: #9a7208;
+  --orange: #b3702f;
+  --red: #bb4a5e;
+  --shadow: #4a3468;
+  --shadow-soft: rgba(74, 52, 104, 0.2);
+  --glow-pink: rgba(221, 93, 156, 0.14);
+  --glow-cyan: rgba(43, 134, 172, 0.12);
 }
 
 *,
@@ -208,9 +208,21 @@ kbd {
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 80% 50% at 20% 0%, #2c1652 0%, transparent 70%),
-    radial-gradient(ellipse 60% 50% at 90% 15%, #3a1647 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 20% 0%, #221240 0%, transparent 72%),
+    radial-gradient(ellipse 60% 50% at 90% 15%, #2a1138 0%, transparent 62%),
     linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 45%, var(--bg-deep) 100%);
+}
+
+/* 顶部一层很淡的柔光，让暗部不至于死黑 */
+.bg-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 40% at 50% -6%, rgba(255, 255, 255, 0.06), transparent 70%);
+}
+
+html[data-theme='day'] .bg-layer::after {
+  background: radial-gradient(ellipse 70% 40% at 50% -6%, rgba(255, 255, 255, 0.55), transparent 70%);
 }
 
 html[data-theme='day'] .bg-layer {
@@ -225,13 +237,13 @@ html[data-theme='day'] .bg-layer {
   inset: 0;
   background-image: url('/img/tile-stars.png');
   background-repeat: repeat;
-  opacity: 0.75;
+  opacity: 0.52;
   animation: twinkle 7s steps(3, end) infinite;
 }
 
 html[data-theme='day'] .bg-stars {
   background-image: url('/img/tile-paper.png');
-  opacity: 0.55;
+  opacity: 0.42;
   animation: none;
 }
 
@@ -239,8 +251,8 @@ html[data-theme='day'] .bg-stars {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(138, 109, 255, 0.13) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(138, 109, 255, 0.13) 1px, transparent 1px);
+    linear-gradient(rgba(123, 104, 201, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123, 104, 201, 0.09) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: linear-gradient(180deg, transparent 0%, #000 32%, #000 62%, transparent 100%);
   -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 32%, #000 62%, transparent 100%);
@@ -248,8 +260,8 @@ html[data-theme='day'] .bg-stars {
 
 html[data-theme='day'] .bg-grid {
   background-image:
-    linear-gradient(rgba(108, 66, 184, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(108, 66, 184, 0.1) 1px, transparent 1px);
+    linear-gradient(rgba(127, 99, 196, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127, 99, 196, 0.07) 1px, transparent 1px);
 }
 
 .bg-moon {
@@ -259,16 +271,16 @@ html[data-theme='day'] .bg-grid {
   width: 148px;
   height: 148px;
   background: url('/img/moon.png') no-repeat center / contain;
-  filter: drop-shadow(0 0 22px rgba(255, 224, 138, 0.35));
+  filter: drop-shadow(0 0 18px rgba(246, 223, 166, 0.22));
   animation: floating 9s ease-in-out infinite;
-  opacity: 0.95;
+  opacity: 0.88;
 }
 
 html[data-theme='day'] .bg-moon {
   width: 120px;
   height: 120px;
   background-image: url('/img/sun.png');
-  filter: drop-shadow(0 0 26px rgba(255, 190, 80, 0.45));
+  filter: drop-shadow(0 0 22px rgba(255, 200, 120, 0.32));
 }
 
 .bg-shooting {
@@ -277,7 +289,7 @@ html[data-theme='day'] .bg-moon {
   left: -12%;
   width: 130px;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #fff, var(--cyan));
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.85), var(--cyan));
   transform: rotate(-18deg);
   opacity: 0;
   animation: shooting 9s linear infinite;
@@ -297,15 +309,15 @@ html[data-theme='day'] .bg-shooting {
     180deg,
     rgba(0, 0, 0, 0) 0px,
     rgba(0, 0, 0, 0) 2px,
-    rgba(0, 0, 0, 0.14) 2px,
-    rgba(0, 0, 0, 0.14) 3px
+    rgba(0, 0, 0, 0.07) 2px,
+    rgba(0, 0, 0, 0.07) 3px
   );
-  opacity: 0.5;
+  opacity: 0.28;
   mix-blend-mode: multiply;
 }
 
 html[data-theme='day'] .scanlines {
-  opacity: 0.18;
+  opacity: 0.1;
 }
 
 @keyframes twinkle {
@@ -718,7 +730,7 @@ html[data-theme='day'] .window__bar {
 }
 
 .window--pink .window__bar {
-  background: linear-gradient(90deg, #ff5fae, #ff3d9a 65%, #ff8a5f);
+  background: linear-gradient(90deg, #f4a3d8, #ea7bb4 65%, #f3bf8b);
 }
 
 .window--cyan .window__bar {
@@ -1889,4 +1901,49 @@ html[data-theme='day'] .search-modal__backdrop {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+/* ---------- 柔和化：轻微圆角与更淡的硬阴影 ---------- */
+
+.window,
+.post-card,
+.mini-list__item,
+.pixel-btn,
+.tool-btn,
+.tag,
+.repo-card,
+.repo-mini__item,
+.friend-card,
+.note-card,
+.work-card,
+.notice-list li,
+.radio-box__deck,
+.radio-box__nav,
+.copy-field input,
+.copy-field button,
+.search-panel,
+.guest-entry__bubble,
+.archive-table,
+.gear-table {
+  border-radius: var(--radius);
+}
+
+/* 窗口外阴影收窄一像素，边缘不至于太扎眼 */
+.window {
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.1),
+    inset -1px -1px 0 rgba(0, 0, 0, 0.32),
+    4px 4px 0 rgba(8, 5, 21, 0.55);
+}
+
+.pixel-btn {
+  box-shadow: 3px 3px 0 rgba(8, 5, 21, 0.5);
+}
+
+.pixel-btn:hover {
+  box-shadow: 1px 1px 0 rgba(8, 5, 21, 0.5);
+}
+
+.pixel-btn:active {
+  box-shadow: 0 0 0 rgba(8, 5, 21, 0.5);
 }

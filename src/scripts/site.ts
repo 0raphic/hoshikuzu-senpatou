@@ -88,23 +88,126 @@ interface Chord {
   arp: number[];
 }
 
-const CHORDS: Chord[] = [
-  { bass: 45, arp: [57, 60, 64, 69] }, // Am
-  { bass: 41, arp: [53, 57, 60, 65] }, // F
-  { bass: 48, arp: [48, 55, 60, 64] }, // C
-  { bass: 43, arp: [55, 59, 62, 67] }, // G
+interface Track {
+  id: string;
+  title: string;
+  bpm: number;
+  /** 4 个和弦，每个占 1 小节 */
+  chords: Chord[];
+  /** 64 个十六分音符 = 4 小节，null 表示休止 */
+  melody: (number | null)[];
+  lead: OscillatorType;
+  leadPeak: number;
+  bassPeak: number;
+  drums: 'full' | 'soft' | 'none';
+}
+
+const TRACKS: Track[] = [
+  {
+    id: 'moon-radio',
+    title: '月面电台',
+    bpm: 96,
+    chords: [
+      { bass: 45, arp: [57, 60, 64, 69] }, // Am
+      { bass: 41, arp: [53, 57, 60, 65] }, // F
+      { bass: 48, arp: [48, 55, 60, 64] }, // C
+      { bass: 43, arp: [55, 59, 62, 67] }, // G
+    ],
+    melody: [
+      76, null, 81, null, 84, null, 83, 81, null, 76, null, 79, null, 81, null, null,
+      77, null, 81, null, 84, null, 86, 84, null, 81, null, 77, null, 79, null, null,
+      79, null, 84, null, 88, null, 86, 84, null, 79, null, 76, null, 79, null, null,
+      74, null, 79, null, 83, null, 86, 83, null, 79, null, 74, null, 71, null, null,
+    ],
+    lead: 'square',
+    leadPeak: 0.032,
+    bassPeak: 0.1,
+    drums: 'full',
+  },
+  {
+    id: 'stardust-drive',
+    title: '星屑ドライブ',
+    bpm: 132,
+    chords: [
+      { bass: 48, arp: [48, 55, 60, 64] }, // C
+      { bass: 43, arp: [43, 50, 55, 59] }, // G
+      { bass: 45, arp: [45, 52, 57, 60] }, // Am
+      { bass: 41, arp: [41, 48, 53, 57] }, // F
+    ],
+    melody: [
+      72, null, 76, null, 79, null, 84, 79, null, 76, null, 72, null, 76, null, null,
+      74, null, 79, null, 83, null, 86, 83, null, 79, null, 74, null, 71, null, null,
+      72, null, 76, null, 81, null, 84, 81, null, 76, null, 72, null, 69, null, null,
+      77, null, 81, null, 84, null, 88, 84, null, 81, null, 77, null, 72, null, null,
+    ],
+    lead: 'square',
+    leadPeak: 0.028,
+    bassPeak: 0.09,
+    drums: 'full',
+  },
+  {
+    id: 'midnight-orbit',
+    title: '深夜轨道',
+    bpm: 76,
+    chords: [
+      { bass: 45, arp: [57, 60, 64, 69] }, // Am
+      { bass: 41, arp: [53, 57, 60, 65] }, // F
+      { bass: 38, arp: [50, 53, 57, 62] }, // Dm
+      { bass: 40, arp: [52, 56, 59, 64] }, // E
+    ],
+    melody: [
+      69, null, null, null, 72, null, null, null, 76, null, null, 72, null, null, null, null,
+      65, null, null, null, 69, null, null, null, 72, null, null, 69, null, null, null, null,
+      62, null, null, null, 65, null, null, null, 69, null, null, 65, null, null, null, null,
+      64, null, null, null, 68, null, null, null, 71, null, null, 68, null, null, null, null,
+    ],
+    lead: 'triangle',
+    leadPeak: 0.042,
+    bassPeak: 0.085,
+    drums: 'soft',
+  },
+  {
+    id: 'rainy-arcade',
+    title: '雨のアーケード',
+    bpm: 112,
+    chords: [
+      { bass: 41, arp: [53, 57, 60, 65] }, // F
+      { bass: 43, arp: [55, 59, 62, 67] }, // G
+      { bass: 40, arp: [52, 55, 59, 64] }, // Em
+      { bass: 45, arp: [57, 60, 64, 69] }, // Am
+    ],
+    melody: [
+      77, null, 77, 81, null, 79, 77, null, 72, null, 77, null, 79, null, null, null,
+      79, null, 79, 83, null, 81, 79, null, 74, null, 79, null, 81, null, null, null,
+      76, null, 76, 79, null, 78, 76, null, 71, null, 76, null, 78, null, null, null,
+      72, null, 76, null, 81, null, 79, 76, null, 72, null, 69, null, 72, null, null,
+    ],
+    lead: 'square',
+    leadPeak: 0.026,
+    bassPeak: 0.095,
+    drums: 'full',
+  },
 ];
 
-// 64 个十六分音符 = 4 小节 × 4 拍，null 表示休止
-const MELODY: (number | null)[] = [
-  76, null, 81, null, 84, null, 83, 81, null, 76, null, 79, null, 81, null, null,
-  77, null, 81, null, 84, null, 86, 84, null, 81, null, 77, null, 79, null, null,
-  79, null, 84, null, 88, null, 86, 84, null, 79, null, 76, null, 79, null, null,
-  74, null, 79, null, 83, null, 86, 83, null, 79, null, 74, null, 71, null, null,
-];
+const TRACK_KEY = 'hoshikuzu.bgm.track';
 
-const TOTAL_STEPS = MELODY.length;
-const STEP_SECONDS = 60 / 96 / 4; // 96 BPM 的十六分音符
+function clampTrackIndex(index: number): number {
+  const total = TRACKS.length;
+  return ((index % total) + total) % total;
+}
+
+function readStoredTrack(): number {
+  try {
+    const raw = window.localStorage.getItem(TRACK_KEY);
+    if (raw === null) return 0;
+    const parsed = Number.parseInt(raw, 10);
+    return Number.isFinite(parsed) ? clampTrackIndex(parsed) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+let trackIndex = readStoredTrack();
 
 interface BgmState {
   ctx: AudioContext;
@@ -184,36 +287,67 @@ function playHat(state: BgmState, time: number): void {
   source.stop(time + 0.05);
 }
 
-function scheduleStep(state: BgmState, step: number, time: number): void {
-  const bar = Math.floor(step / 16) % CHORDS.length;
-  const beat = step % 16;
-  const chord = CHORDS[bar];
+function currentTrack(): Track {
+  return TRACKS[trackIndex] ?? TRACKS[0];
+}
 
-  if (beat % 4 === 0) playTone(state, time, chord.bass, 0.3, 'triangle', 0.1);
+function scheduleStep(state: BgmState, step: number, time: number): void {
+  const track = currentTrack();
+  const bar = Math.floor(step / 16) % track.chords.length;
+  const beat = step % 16;
+  const chord = track.chords[bar] ?? track.chords[0];
+
+  if (beat % 4 === 0) playTone(state, time, chord.bass, 0.3, 'triangle', track.bassPeak);
   if (beat % 2 === 0) {
     const arpIndex = Math.floor(beat / 2) % chord.arp.length;
-    playTone(state, time, chord.arp[arpIndex], 0.16, 'square', 0.017);
+    playTone(state, time, chord.arp[arpIndex] ?? chord.arp[0], 0.16, 'square', 0.017);
   }
 
-  const melodyNote = MELODY[step];
-  if (melodyNote !== null) playTone(state, time, melodyNote, 0.24, 'square', 0.032);
+  const melodyNote = track.melody[step] ?? null;
+  if (melodyNote !== null) {
+    const length = track.lead === 'triangle' ? 0.42 : 0.24;
+    playTone(state, time, melodyNote, length, track.lead, track.leadPeak);
+  }
 
-  if (beat === 0 || beat === 8) playKick(state, time);
-  if (beat % 4 === 2) playHat(state, time);
-  if (beat === 12) playTone(state, time, chord.arp[3] + 12, 0.5, 'triangle', 0.012);
+  if (track.drums === 'full') {
+    if (beat === 0 || beat === 8) playKick(state, time);
+    if (beat % 4 === 2) playHat(state, time);
+    if (beat === 12) {
+      const top = chord.arp[chord.arp.length - 1] ?? chord.bass;
+      playTone(state, time, top + 12, 0.5, 'triangle', 0.012);
+    }
+  } else if (track.drums === 'soft') {
+    if (beat === 0) playKick(state, time);
+    if (beat === 6 || beat === 14) playHat(state, time);
+  }
 }
 
 function scheduleAhead(state: BgmState): void {
   const { ctx } = state;
+  const track = currentTrack();
+  const stepSeconds = 60 / track.bpm / 4;
+  const totalSteps = track.melody.length;
   // 标签页切换回来时时间可能落后过多，避免一次性排入大量音符
   if (state.nextTime < ctx.currentTime - 0.5) state.nextTime = ctx.currentTime + 0.05;
   let guard = 0;
   while (state.nextTime < ctx.currentTime + 0.18 && guard < 64) {
     scheduleStep(state, state.step, state.nextTime);
-    state.nextTime += STEP_SECONDS;
-    state.step = (state.step + 1) % TOTAL_STEPS;
+    state.nextTime += stepSeconds;
+    state.step = (state.step + 1) % totalSteps;
     guard += 1;
   }
+}
+
+function updateTrackUI(): void {
+  const track = currentTrack();
+  const total = String(TRACKS.length).padStart(2, '0');
+  const position = `${String(trackIndex + 1).padStart(2, '0')} / ${total}`;
+  $all('[data-bgm-track]').forEach((el) => {
+    el.textContent = track.title;
+  });
+  $all('[data-bgm-meta]').forEach((el) => {
+    el.textContent = `${position} ・ ${track.bpm} BPM`;
+  });
 }
 
 function setBgmUI(playing: boolean): void {
@@ -222,10 +356,15 @@ function setBgmUI(playing: boolean): void {
     btn.setAttribute('aria-pressed', String(playing));
     btn.classList.toggle('is-on', playing);
     const label = $('.tool-btn__text', btn);
-    if (label && btn.classList.contains('tool-btn')) label.textContent = playing ? '停止' : 'BGM';
+    if (label && btn.classList.contains('tool-btn')) {
+      label.textContent = playing ? '停止' : 'BGM';
+    } else if (!btn.classList.contains('tool-btn')) {
+      btn.textContent = playing ? '❚❚ 停止播放' : '♪ 播放芯片音乐';
+    }
     btn.setAttribute('title', playing ? '停止芯片音乐' : '播放芯片音乐');
   });
   $all('.equalizer').forEach((el) => el.classList.toggle('is-paused', !playing));
+  updateTrackUI();
 }
 
 async function startBgm(): Promise<void> {
@@ -262,6 +401,40 @@ async function startBgm(): Promise<void> {
   setBgmUI(true);
 }
 
+/** 换曲时把音量压下去、重置步进，再从新曲开头接上 */
+function restartBgmScheduler(): void {
+  if (!bgm) return;
+  const state = bgm;
+  window.clearInterval(state.timer);
+  state.timer = 0;
+  const { ctx, master } = state;
+  master.gain.cancelScheduledValues(ctx.currentTime);
+  master.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.03);
+
+  window.setTimeout(() => {
+    if (!bgmPlaying || !bgm) return;
+    const live = bgm;
+    live.master.gain.cancelScheduledValues(live.ctx.currentTime);
+    live.master.gain.setTargetAtTime(0.5, live.ctx.currentTime, 0.06);
+    live.step = 0;
+    live.nextTime = live.ctx.currentTime + 0.12;
+    window.clearInterval(live.timer);
+    live.timer = window.setInterval(() => scheduleAhead(live), 25);
+    scheduleAhead(live);
+  }, 200);
+}
+
+function switchTrack(delta: number): void {
+  trackIndex = clampTrackIndex(trackIndex + delta);
+  try {
+    window.localStorage.setItem(TRACK_KEY, String(trackIndex));
+  } catch {
+    /* 隐身模式下写不进去也无所谓 */
+  }
+  updateTrackUI();
+  if (bgmPlaying) restartBgmScheduler();
+}
+
 function stopBgm(): void {
   if (!bgm) {
     bgmPlaying = false;
@@ -284,9 +457,20 @@ function initBgm(): void {
   setBgmUI(false);
   document.addEventListener('click', (event) => {
     const target = event.target as Element | null;
-    if (!target?.closest('[data-bgm-toggle]')) return;
-    if (bgmPlaying) stopBgm();
-    else void startBgm();
+    if (!target) return;
+
+    if (target.closest('[data-bgm-toggle]')) {
+      if (bgmPlaying) stopBgm();
+      else void startBgm();
+      return;
+    }
+
+    const prev = target.closest('[data-bgm-prev]');
+    const next = target.closest('[data-bgm-next]');
+    if (!prev && !next) return;
+    switchTrack(prev ? -1 : 1);
+    // 没在播时按换曲，顺手把它放起来（老式收音机的手感）
+    if (!bgmPlaying) void startBgm();
   });
 }
 

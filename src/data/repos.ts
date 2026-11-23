@@ -121,3 +121,18 @@ export const LANG_STATS = [
   { name: 'CSS', value: 8, color: '#563d7c' },
   { name: 'Other', value: 3, color: '#8b8b8b' },
 ];
+
+/** 按「置顶优先，其次按更新时间倒序」排序 —— 页面统一用这个，别直接 slice 原数组 */
+export function sortRepos(list: Repo[] = REPOS): Repo[] {
+  return [...list].sort((a, b) => {
+    const pin = Number(b.pinned ?? false) - Number(a.pinned ?? false);
+    if (pin !== 0) return pin;
+    return b.updated.localeCompare(a.updated);
+  });
+}
+
+/** 快照里最新的一次更新时间（YYYY-MM-DD），用于「数据截至」 */
+export const REPOS_LATEST_UPDATE = REPOS.reduce(
+  (latest, repo) => (repo.updated > latest ? repo.updated : latest),
+  REPOS[0]?.updated ?? '1970-01-01',
+);

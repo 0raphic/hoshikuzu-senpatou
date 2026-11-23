@@ -9,18 +9,18 @@
   overflow: hidden;
   border: 2px solid var(--line-bright);
   background:
-    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(255, 61, 154, 0.18), transparent 60%),
-    radial-gradient(ellipse 50% 80% at 10% 100%, rgba(121, 230, 255, 0.14), transparent 60%),
-    linear-gradient(135deg, #251345 0%, #1a0f33 55%, #140a28 100%);
-  box-shadow: 8px 8px 0 var(--shadow);
+    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(234, 123, 180, 0.14), transparent 62%),
+    radial-gradient(ellipse 50% 80% at 10% 100%, rgba(150, 226, 244, 0.1), transparent 62%),
+    linear-gradient(135deg, #241542 0%, #1b1036 55%, #150d2b 100%);
+  box-shadow: 5px 5px 0 rgba(8, 5, 21, 0.55);
   padding: 26px 28px;
 }
 
 html[data-theme='day'] .hero {
   background:
-    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(232, 70, 143, 0.16), transparent 60%),
-    radial-gradient(ellipse 50% 80% at 10% 100%, rgba(27, 143, 190, 0.12), transparent 60%),
-    linear-gradient(135deg, #fff6fb 0%, #f6ecff 60%, #efe3ff 100%);
+    radial-gradient(ellipse 60% 90% at 85% 10%, rgba(221, 93, 156, 0.13), transparent 62%),
+    radial-gradient(ellipse 50% 80% at 10% 100%, rgba(43, 134, 172, 0.1), transparent 62%),
+    linear-gradient(135deg, #fff8fc 0%, #f8f0ff 60%, #f2e9ff 100%);
 }
 
 .hero::before {
@@ -28,8 +28,8 @@ html[data-theme='day'] .hero {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(138, 109, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(138, 109, 255, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(123, 104, 201, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(123, 104, 201, 0.07) 1px, transparent 1px);
   background-size: 34px 34px;
   pointer-events: none;
   mask-image: linear-gradient(90deg, #000, transparent 65%);
@@ -126,7 +126,7 @@ html[data-theme='day'] .hero {
   font-size: clamp(1.7rem, 3.8vw, 2.5rem);
   line-height: 1.5;
   letter-spacing: 0.03em;
-  text-shadow: 3px 3px 0 var(--shadow);
+  text-shadow: 2px 2px 0 rgba(8, 5, 21, 0.45);
   margin-bottom: 12px;
 }
 
@@ -344,6 +344,67 @@ html[data-theme='day'] .hero {
   color: var(--faint);
   letter-spacing: 0.14em;
   margin-bottom: 12px;
+}
+
+/* 曲目切换 */
+.radio-box__deck {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 6px 8px;
+  background: rgba(10, 6, 24, 0.45);
+  border: 1px solid var(--line);
+}
+
+.radio-box__nav {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 9px;
+  color: var(--cyan);
+  background: transparent;
+  border: 1px solid var(--line);
+  transition: 0.12s ease;
+}
+
+.radio-box__nav:hover {
+  color: var(--bg-deep);
+  background: var(--cyan);
+  border-color: var(--cyan);
+}
+
+.radio-box__nav:active {
+  transform: translateY(1px);
+}
+
+.radio-box__now {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.5;
+}
+
+.radio-box__track {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.radio-box__meta {
+  display: block;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: var(--faint);
+  letter-spacing: 0.1em;
 }
 
 .equalizer {
@@ -1207,6 +1268,19 @@ html[data-theme='day'] .timeline__item::before {
   height: 7px;
   border-radius: 50%;
   display: inline-block;
+}
+
+.repo-card__wip {
+  margin-left: auto;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
+  padding: 0 4px;
+}
+
+.repo-card__pin + .repo-card__wip {
+  margin-left: 6px;
 }
 
 .repo-card__archived {

@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 import { SITE, HITOKOTO, FORTUNES } from '../config';
-import { REPOS } from '../data/repos';
+import { sortRepos } from '../data/repos';
 import {
   sortByDateDesc,
   isPublished,
@@ -27,7 +27,7 @@ const latestPosts = posts.slice(0, 4);
 const latestNotes = notes.slice(0, 6);
 const noticeNotes = notes.slice(0, 4);
 const featuredWorks = works.slice(0, 3);
-const miniRepos = REPOS.slice(0, 5);
+const miniRepos = sortRepos().slice(0, 5);
 
 const fortune = FORTUNES[daySeed() % FORTUNES.length];
 const hitokoto = HITOKOTO[daySeed(5) % HITOKOTO.length];
@@ -168,7 +168,14 @@ const statusRows = [
       <WindowFrame title="月面电台" icon="♪" variant="cyan">
         <div class="radio-box">
           <p class="radio-box__title">MOON RADIO</p>
-          <p class="radio-box__freq">FM 88.31 MHz ／ 昼夜不停</p>
+          <div class="radio-box__deck">
+            <button class="radio-box__nav" type="button" data-bgm-prev aria-label="上一首">◀</button>
+            <div class="radio-box__now">
+              <span class="radio-box__track" data-bgm-track aria-live="polite">月面电台</span>
+              <span class="radio-box__meta" data-bgm-meta>01 / 04 ・ 96 BPM</span>
+            </div>
+            <button class="radio-box__nav" type="button" data-bgm-next aria-label="下一首">▶</button>
+          </div>
           <div class="equalizer" aria-hidden="true">
             <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
           </div>
@@ -176,7 +183,7 @@ const statusRows = [
             ♪ 播放芯片音乐
           </button>
           <p class="radio-box__hint">
-            完全由 WebAudio 实时合成，没有音频文件，关掉网页就安静了。
+            四首曲子循环，全部由 WebAudio 实时合成，没有音频文件，关掉网页就安静了。
           </p>
         </div>
       </WindowFrame>

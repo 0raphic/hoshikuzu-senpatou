@@ -1,13 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { REPOS, LANG_STATS } from '../data/repos';
-import { formatDate, isoDate } from '../utils';
+import { REPOS, LANG_STATS, REPOS_LATEST_UPDATE, sortRepos } from '../data/repos';
+import { formatDate } from '../utils';
 import Breadcrumb from '../components/Breadcrumb.astro';
 
 const pinned = REPOS.filter((repo) => repo.pinned).length;
 const stars = REPOS.reduce((sum, repo) => sum + repo.stars, 0);
 const archived = REPOS.filter((repo) => repo.status === 'archived').length;
-const sorted = [...REPOS].sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
+const sorted = sortRepos();
+const latestDate = new Date(`${REPOS_LATEST_UPDATE}T00:00:00+08:00`);
 ---
 
 <BaseLayout title="仓库" description="我开源在 GitHub 上的仓库一览：博客、工具、硬件实验和配置文件。">
@@ -64,6 +65,7 @@ const sorted = [...REPOS].sort((a, b) => Number(b.pinned ?? false) - Number(a.pi
               {repo.name}
             </a>
             {repo.pinned && <span class="repo-card__pin">PIN</span>}
+            {repo.status === 'wip' && <span class="repo-card__wip">WIP</span>}
             {repo.status === 'archived' && <span class="repo-card__archived">ARCHIVED</span>}
           </div>
           <p class="repo-card__desc">{repo.description}</p>
@@ -82,8 +84,8 @@ const sorted = [...REPOS].sort((a, b) => Number(b.pinned ?? false) - Number(a.pi
             <span>★ {repo.stars}</span>
             <span>⑂ {repo.forks}</span>
             <span>
-              <time datetime={isoDate(new Date(repo.updated))}>
-                更新于 {repo.updated}
+              <time datetime={repo.updated}>
+                更新于 {formatDate(new Date(`${repo.updated}T00:00:00+08:00`))}
               </time>
             </span>
           </div>
@@ -95,6 +97,6 @@ const sorted = [...REPOS].sort((a, b) => Number(b.pinned ?? false) - Number(a.pi
   <p class="mono faint small" style="margin-top:18px">
     更完整的仓库列表与提交历史，请到
     <a href="https://github.com/yourname" target="_blank" rel="noopener">github.com/yourname</a>
-    （数据截至 {formatDate(new Date(`${new Date().getFullYear()}-11-01T00:00:00+08:00`))}）。
+    （数据截至 {formatDate(latestDate)}）。
   </p>
 </BaseLayout>
