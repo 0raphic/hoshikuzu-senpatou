@@ -1,0 +1,217 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import WindowFrame from '../components/WindowFrame.astro';
+import VisitorCounter from '../components/VisitorCounter.astro';
+
+const moods = [
+  { value: 'star', label: '星星', icon: 'star' },
+  { value: 'moon', label: '月亮', icon: 'moon' },
+  { value: 'cat', label: '猫', icon: 'cat' },
+  { value: 'music', label: '音乐', icon: 'music' },
+  { value: 'heart', label: '爱心', icon: 'heart' },
+  { value: 'sparkle', label: '闪光', icon: 'sparkle' },
+];
+
+const samples = [
+  {
+    id: 'sample-1',
+    name: '月面电台的兔子',
+    site: 'https://example.com',
+    avatar: '/img/friends/rabbit.png',
+    date: '2026-11-22T22:10:00+08:00',
+    label: '2026.11.22 22:10',
+    text: '第一次来，电波收到了。这个站的扫描线和跑马灯让我想起初中第一次攒机的时候，回你一个 ★',
+    mood: 'star',
+    moodLabel: '星星',
+  },
+  {
+    id: 'sample-2',
+    name: '电子之海',
+    site: 'https://example.com',
+    avatar: '/img/friends/robot.png',
+    date: '2026-11-20T01:32:00+08:00',
+    label: '2026.11.20 01:32',
+    text: '味道对了。尤其是那个用 WebAudio 合成的 BGM，我把音箱开到最大听完了整整一轮和弦。',
+    mood: 'music',
+    moodLabel: '音乐',
+  },
+  {
+    id: 'sample-3',
+    name: '匿名的电波',
+    site: '',
+    avatar: '/img/friends/ghost.png',
+    date: '2026-11-18T20:05:00+08:00',
+    label: '2026.11.18 20:05',
+    text: '1024×768 用户前来报到。像素字看着太舒服了，比现在那些圆角卡片真诚多了。',
+    mood: 'heart',
+    moodLabel: '爱心',
+  },
+];
+---
+
+<BaseLayout title="留言板" description={`给${SITE.title}留一条电波：不需要登录，也不需要邮箱。`}>
+  <Breadcrumb items={[{ label: '留言板' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">GUESTBOOK ／ 电波回收站</p>
+    <h1>留言板</h1>
+    <p class="page-head__lead">
+      不用注册、不用邮箱，写下想说的话就好。建议先留个称呼，方便我记住你。
+    </p>
+    <div class="page-head__meta">
+      <span>访客留言 <b>{samples.length}</b> 条</span>
+      <span>留言上限 <b>280</b> 字</span>
+    </div>
+  </header>
+
+  <div class="guestbook-layout">
+    <div>
+      <WindowFrame title="留下你的电波" icon="✎" class="guest-form">
+        <form id="guest-form" novalidate>
+          <div class="form-grid">
+            <div class="field">
+              <label for="gb-name">称呼 <span>*</span></label>
+              <input
+                id="gb-name"
+                name="name"
+                type="text"
+                maxlength="24"
+                placeholder="怎么称呼你呢？"
+                autocomplete="nickname"
+                required
+              />
+            </div>
+
+            <div class="field">
+              <label for="gb-site">你的主页（选填）</label>
+              <input
+                id="gb-site"
+                name="site"
+                type="url"
+                maxlength="120"
+                placeholder="https://"
+                autocomplete="url"
+              />
+            </div>
+
+            <div class="field field--full">
+              <label for="gb-mood">带一个心情</label>
+              <select id="gb-mood" name="mood">
+                {
+                  moods.map((mood) => (
+                    <option value={mood.value}>{mood.label}</option>
+                  ))
+                }
+              </select>
+            </div>
+
+            <div class="field field--full">
+              <label for="gb-message">电波内容 <span>*</span></label>
+              <textarea
+                id="gb-message"
+                name="message"
+                maxlength="280"
+                placeholder="想说的话、想交换的友链、发现的问题，都可以写在这里。"
+                required
+              ></textarea>
+              <span class="field__hint">
+                已写 <b id="guest-count">0</b> / 280 字 ／ 不需要登录，也不会收集邮箱
+              </span>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button class="pixel-btn" type="submit">发送电波 ✦</button>
+            <span class="form-status" id="guest-status" role="status" aria-live="polite"></span>
+          </div>
+        </form>
+      </WindowFrame>
+
+      <p class="guest-note">
+        说明：本站是纯静态站点，留言会先保存在你自己的浏览器里（localStorage），
+        换设备就看不到；如果部署时接上了 Cloudflare Functions + D1/KV，
+        留言则会同步到云端留言板，所有人都能看到。
+      </p>
+
+      <div class="window" style="margin-top:22px">
+        <div class="window__bar">
+          <span class="window__title"><span class="ico" aria-hidden="true">≡</span> 最近的留言</span>
+          <span class="window__btns" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span>
+        </div>
+        <div class="window__body">
+          <ol class="guest-list" id="guest-list">
+            {
+              samples.map((entry) => (
+                <li class="guest-entry" data-guest-id={entry.id}>
+                  <div class="guest-entry__avatar">
+                    <img
+                      src={entry.avatar}
+                      alt={`${entry.name} 的头像`}
+                      width="48"
+                      height="48"
+                      loading="lazy"
+                    />
+                  </div>
+                  <div class="guest-entry__bubble">
+                    <div class="guest-entry__head">
+                      <span class="guest-entry__name">
+                        {entry.site ? (
+                          <a href={entry.site} target="_blank" rel="nofollow noopener">
+                            {entry.name}
+                          </a>
+                        ) : (
+                          entry.name
+                        )}
+                      </span>
+                      <time class="guest-entry__date" datetime={entry.date}>
+                        {entry.label}
+                      </time>
+                      <span class="guest-entry__floor">WEB</span>
+                    </div>
+                    <p class="guest-entry__body">{entry.text}</p>
+                    <span class="guest-entry__mood">
+                      <img src={`/img/moods/${entry.mood}.png`} alt="" width="14" height="14" />
+                      {entry.moodLabel}
+                    </span>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <aside class="home-aside">
+      <WindowFrame title="留言簿" icon="♥" variant="pink">
+        <div class="guest-side-card">
+          <img src="/img/friends/star.png" alt="" width="56" height="56" loading="lazy" />
+          <p>
+            这块板子从 2026 年 9 月一直开着。<br />
+            不需要理由，路过也可以写一句。
+          </p>
+          <VisitorCounter label="累计电波" />
+        </div>
+      </WindowFrame>
+
+      <WindowFrame title="留言规则" icon="!" variant="yellow">
+        <ol class="apply-steps">
+          <li>友善一点。这里只是一个学生的小站。</li>
+          <li>广告、采集站链接会被删掉。</li>
+          <li>想交换友链的话，请顺手写下你的站名和地址。</li>
+          <li>发现错别字或 bug，非常欢迎直接指出。</li>
+        </ol>
+      </WindowFrame>
+
+      <WindowFrame title="其他联系方式" icon="✉" variant="cyan">
+        <p class="small muted">
+          邮件：<a href={`mailto:${SITE.author.email}`}>{SITE.author.email}</a><br />
+          GitHub：<a href={SITE.author.github} target="_blank" rel="noopener">@{SITE.author.handle}</a><br />
+          RSS：<a href="/rss.xml">订阅本站</a>
+        </p>
+      </WindowFrame>
+    </aside>
+  </div>
+</BaseLayout>

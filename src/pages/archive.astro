@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { sortByDateDesc, isPublished, groupByYear, formatMonthDay } from '../utils';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+const posts = sortByDateDesc(await getCollection('blog', isPublished));
+const groups = groupByYear(posts);
+const total = posts.length;
+---
+
+<BaseLayout title="归档" description="星屑電波塔全部文章的时间归档。">
+  <Breadcrumb items={[{ label: '博客', href: '/blog/' }, { label: '归档' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">ARCHIVE ／ 时间轴</p>
+    <h1>归档</h1>
+    <p class="page-head__lead">按年份排好的全部文章。写下来的东西不会消失，只是沉进了时间轴里。</p>
+    <div class="page-head__meta">
+      <span>共 <b>{total}</b> 篇</span>
+      <span>跨越 <b>{groups.length}</b> 个年份</span>
+      <span>最早 <b>{posts.length > 0 ? posts[posts.length - 1].data.date.getFullYear() : '—'}</b></span>
+    </div>
+  </header>
+
+  {
+    groups.map((group) => (
+      <section class="archive-year">
+        <div class="archive-year__head">
+          <h2>{group.year}</h2>
+          <span>{group.items.length} ARTICLES</span>
+        </div>
+        <table class="archive-table">
+          <tbody>
+            {group.items.map((post) => (
+              <tr>
+                <td class="archive-date">{formatMonthDay(post.data.date)}</td>
+                <td class="archive-title">
+                  <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+                </td>
+                <td class="archive-tags">
+                  {post.data.tags.slice(0, 3).map((tag) => (
+                    <a class="tag" href={`/blog/tags/${tag}/`}>{tag}</a>
+                  ))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
+    ))
+  }
+
+  {
+    total === 0 && <p class="empty">还没有文章。也可能是因为它们都还是草稿。</p>
+  }
+</BaseLayout>

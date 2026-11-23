@@ -1,0 +1,33 @@
+---
+import { counterDigits, hashString } from '../utils';
+import { SITE } from '../config';
+
+interface Props {
+  label?: string;
+  pad?: number;
+}
+
+const { label = '累计访问', pad = 6 } = Astro.props;
+
+// 没有后端时的「伪计数器」：以建站日期为基准，每天缓慢增长。
+const since = new Date('2026-09-01T00:00:00+08:00');
+const days = Math.max(0, Math.floor((Date.now() - since.valueOf()) / 86400000));
+const base = 1024 + days * 57 + (hashString(days + SITE.title) % 23);
+const digits = counterDigits(base, pad);
+---
+
+<span
+  class="counter"
+  data-visit-counter
+  data-base={base}
+  data-pad={pad}
+  title={`站点计数器：${base}`}
+>
+  <span class="counter__label">{label}</span>
+  <span class="counter__digits" aria-hidden="true">
+    {digits.map((digit) => (
+      <img src={`/img/counter/${digit}.png`} alt="" width="12" height="20" loading="lazy" />
+    ))}
+  </span>
+  <span class="sr-only">访问次数 {base}</span>
+</span>

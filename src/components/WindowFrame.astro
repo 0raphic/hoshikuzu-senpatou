@@ -1,0 +1,37 @@
+---
+interface Props {
+  title: string;
+  icon?: string;
+  id?: string;
+  variant?: 'pink' | 'cyan' | 'yellow';
+  bodyClass?: string;
+  class?: string;
+  flush?: boolean;
+}
+
+const {
+  title,
+  icon = '✦',
+  id,
+  variant = 'pink',
+  bodyClass = '',
+  class: className = '',
+  flush = false,
+} = Astro.props;
+---
+
+<section
+  id={id}
+  class:list={['window', variant !== 'pink' && `window--${variant}`, className]}
+>
+  <div class="window__bar">
+    <span class="window__title">
+      <span class="ico" aria-hidden="true">{icon}</span>
+      {title}
+    </span>
+    <span class="window__btns" aria-hidden="true"><i>_</i><i>□</i><i>×</i></span>
+  </div>
+  <div class:list={['window__body', bodyClass, { 'window__body--flush': flush }]}>
+    <slot />
+  </div>
+</section>

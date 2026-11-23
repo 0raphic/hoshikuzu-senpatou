@@ -1,0 +1,216 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { SITE, HITOKOTO, FORTUNES } from '../config';
+import { REPOS } from '../data/repos';
+import {
+  sortByDateDesc,
+  isPublished,
+  isNew,
+  formatMonthDay,
+  isoDate,
+  excerpt,
+  daySeed,
+} from '../utils';
+import PostCard from '../components/PostCard.astro';
+import SectionHead from '../components/SectionHead.astro';
+import WindowFrame from '../components/WindowFrame.astro';
+import VisitorCounter from '../components/VisitorCounter.astro';
+
+const posts = sortByDateDesc(await getCollection('blog', isPublished));
+const notes = sortByDateDesc(await getCollection('notes', isPublished));
+const works = (await getCollection('works', isPublished)).sort(
+  (a, b) => a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+const latestPosts = posts.slice(0, 4);
+const latestNotes = notes.slice(0, 6);
+const noticeNotes = notes.slice(0, 4);
+const featuredWorks = works.slice(0, 3);
+const miniRepos = REPOS.slice(0, 5);
+
+const fortune = FORTUNES[daySeed() % FORTUNES.length];
+const hitokoto = HITOKOTO[daySeed(5) % HITOKOTO.length];
+const luck = (daySeed(9) % 5) + 1;
+const luckStars = '★'.repeat(luck) + '☆'.repeat(5 - luck);
+
+const avatar = SITE.author.avatar;
+const badgeHtml = `<a href="${SITE.url}/" target="_blank" rel="noopener"><img src="${SITE.url}/img/badges/hoshikuzu.png" alt="${SITE.title}" width="88" height="31"></a>`;
+
+const statusRows = [
+  { k: '正在做', v: SITE.status.doing },
+  { k: '正在看', v: SITE.status.watching },
+  { k: '正在听', v: SITE.status.listening },
+  { k: '正在读', v: SITE.status.reading },
+];
+---
+
+<BaseLayout>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero__inner">
+      <div class="hero__avatar">
+        <div class="avatar-frame">
+          <img src={avatar} alt={`${SITE.author.name} 的像素头像`} width="160" height="160" />
+        </div>
+        <span class="avatar-online"><i></i>ONLINE</span>
+      </div>
+
+      <div class="hero__main">
+        <p class="hero__kicker">// TRANSMISSION FROM THE MOON ／ SINCE {SITE.since}</p>
+        <h1 class="hero__title" id="hero-title">
+          欢迎回来，这里是<span>{SITE.title}</span>
+        </h1>
+        <p class="hero__lead">{SITE.description}</p>
+
+        <div class="hero__actions">
+          <a class="pixel-btn" href="/blog/">进入博客 <span aria-hidden="true">→</span></a>
+          <a class="pixel-btn pixel-btn--cyan" href="/works/">逛逛作品集</a>
+          <a class="pixel-btn pixel-btn--ghost" href="/about/">关于站长</a>
+        </div>
+
+        <dl class="hero__status">
+          {
+            statusRows.map((row) => (
+              <div>
+                <dt>{row.k}</dt>
+                <dd>{row.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+
+      <aside class="hero__side" aria-label="侧边信息">
+        <p class="hero__side-label">NOW TRANSMITTING</p>
+        <div class="now-playing">
+          <span class="now-playing__cover" aria-hidden="true">♪</span>
+          <div class="now-playing__info">
+            <strong>{SITE.nowPlaying.title}</strong>
+            <small>{SITE.nowPlaying.artist} ／ {SITE.nowPlaying.note}</small>
+          </div>
+        </div>
+        <VisitorCounter label="累计电波" />
+        <p class="hero__side-note">
+          {hitokoto}<br />
+          <span class="faint">— 今日份电波</span>
+        </p>
+      </aside>
+    </div>
+  </section>
+
+  <div class="home-grid">
+    <div class="home-main">
+      <section class="home-section" aria-labelledby="latest-posts">
+        <SectionHead title="最新文章" en="BLOG" icon="✎" href="/blog/" />
+        <div class="post-grid post-grid--home">
+          {latestPosts.map((post) => <PostCard post={post} />)}
+        </div>
+      </section>
+
+      <section class="home-section" aria-labelledby="latest-notes">
+        <SectionHead title="碎碎念" en="NOTES" icon="…" href="/notes/" />
+        <div class="mini-list">
+          {latestNotes.map((note) => <PostCard post={note} variant="compact" />)}
+        </div>
+      </section>
+
+      <section class="home-section" aria-labelledby="works-strip">
+        <SectionHead title="作品集" en="WORKS" icon="✧" href="/works/" />
+        <div class="work-strip">
+          {
+            featuredWorks.map((work) => (
+              <a class="work-strip__item" href={`/works/${work.id}/`}>
+                <img
+                  src={work.data.cover ?? '/img/covers/default.png'}
+                  alt={work.data.title}
+                  width="640"
+                  height="400"
+                  loading="lazy"
+                />
+                <span>{work.data.title}</span>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+
+      <div class="home-cta">
+        <div>
+          <h2>有什么想说的吗？</h2>
+          <p>留言板不需要登录，也不需要邮箱，写下你的电波就好。</p>
+        </div>
+        <div class="hero__actions">
+          <a class="pixel-btn pixel-btn--sm" href="/guestbook/">去留言板</a>
+          <a class="pixel-btn pixel-btn--sm pixel-btn--ghost" href="/rss.xml">订阅 RSS</a>
+        </div>
+      </div>
+    </div>
+
+    <aside class="home-aside" aria-label="小站侧栏">
+      <WindowFrame title="公告板" icon="★">
+        <ul class="notice-list">
+          {
+            noticeNotes.map((note) => (
+              <li>
+                <time datetime={isoDate(note.data.date)}>{formatMonthDay(note.data.date)}</time>
+                <span>
+                  {excerpt(note.body ?? '', 42)}
+                  {isNew(note.data.date) && <span class="new"> NEW</span>}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </WindowFrame>
+
+      <WindowFrame title="月面电台" icon="♪" variant="cyan">
+        <div class="radio-box">
+          <p class="radio-box__title">MOON RADIO</p>
+          <p class="radio-box__freq">FM 88.31 MHz ／ 昼夜不停</p>
+          <div class="equalizer" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <button class="pixel-btn" type="button" data-bgm-toggle aria-pressed="false">
+            ♪ 播放芯片音乐
+          </button>
+          <p class="radio-box__hint">
+            完全由 WebAudio 实时合成，没有音频文件，关掉网页就安静了。
+          </p>
+        </div>
+      </WindowFrame>
+
+      <WindowFrame title="今日运势" icon="◈" variant="yellow">
+        <div class="fortune">
+          <span class="fortune__level" data-color={fortune.color}>{fortune.level}</span>
+          <p class="fortune__text">{fortune.text}</p>
+        </div>
+        <p class="fortune__stars" aria-label={`运势 ${luck} 星`}>{luckStars}</p>
+      </WindowFrame>
+
+      <WindowFrame title="本站徽章" icon="◉">
+        <div class="badge-preview">
+          <img src="/img/badges/hoshikuzu.png" alt={`${SITE.title} 徽章`} width="88" height="31" />
+          <span class="small faint">88 × 31 ／ 随便拿去用</span>
+        </div>
+        <div class="copy-field">
+          <input readonly value={badgeHtml} aria-label="徽章 HTML 代码" />
+          <button class="pixel-btn pixel-btn--sm" type="button" data-copy={badgeHtml}>复制</button>
+        </div>
+      </WindowFrame>
+
+      <WindowFrame title="最近仓库" icon="⌗">
+        <div class="repo-mini">
+          {
+            miniRepos.map((repo) => (
+              <a class="repo-mini__item" href={repo.url}>
+                <span class="repo-mini__name">{repo.name}</span>
+                <span class="repo-mini__desc">{repo.description}</span>
+                <span class="repo-mini__star">★{repo.stars}</span>
+              </a>
+            ))
+          }
+        </div>
+      </WindowFrame>
+    </aside>
+  </div>
+</BaseLayout>

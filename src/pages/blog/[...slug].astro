@@ -1,0 +1,139 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { sortByDateDesc, isPublished, formatDate, isoDate, readingTime, stripMarkdown } from '../../utils';
+import Breadcrumb from '../../components/Breadcrumb.astro';
+import TagList from '../../components/TagList.astro';
+import WindowFrame from '../../components/WindowFrame.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', isPublished);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await render(post);
+
+const posts = sortByDateDesc(await getCollection('blog', isPublished));
+const index = posts.findIndex((item) => item.id === post.id);
+const older = index >= 0 ? posts[index + 1] : undefined;
+const newer = index > 0 ? posts[index - 1] : undefined;
+
+const minutes = readingTime(post.body ?? '', post.data.minutes);
+const words = stripMarkdown(post.body ?? '').replace(/\s+/g, '').length;
+const toc = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+const cover = post.data.cover ?? '/img/covers/default.png';
+---
+
+<BaseLayout
+  title={post.data.title}
+  description={post.data.description}
+  image={cover}
+  type="article"
+>
+  <div class="reading-progress" aria-hidden="true"></div>
+
+  <Breadcrumb items={[{ label: '博客', href: '/blog/' }, { label: post.data.title }]} />
+
+  <article>
+    <header class="post-head">
+      <div class="post-head__cover">
+        <img src={cover} alt={post.data.title} width="720" height="360" />
+      </div>
+      <p class="post-head__kicker">
+        LOG #{post.id.slice(0, 12).toUpperCase()} ／ {formatDate(post.data.date)}
+      </p>
+      <h1 class="post-title">{post.data.title}</h1>
+      <p class="post-desc">{post.data.description}</p>
+      <div class="post-meta">
+        <span>公開日 <b>{formatDate(post.data.date)}</b></span>
+        {post.data.updated && (
+          <span>
+            <span class="sep">／</span> 更新 <b>{formatDate(post.data.updated)}</b>
+          </span>
+        )}
+        <span><span class="sep">／</span> 読了 <b>{minutes} 分</b></span>
+        <span><span class="sep">／</span> 約 <b>{words}</b> 字</span>
+        <span><span class="sep">／</span> 标签 {post.data.tags.join('・') || '无'}</span>
+      </div>
+    </header>
+
+    <div class="post-layout">
+      <div class="post-content">
+        <div class="prose">
+          <Content />
+        </div>
+
+        {post.data.tags.length > 0 && (
+          <div class="post-tags">
+            <TagList tags={post.data.tags} />
+          </div>
+        )}
+
+        <nav class="post-pager" aria-label="上一篇 / 下一篇">
+          {newer ? (
+            <a class="pager-card" href={`/blog/${newer.id}/`}>
+              <span class="pager-card__label">← 上一篇（更新）</span>
+              <span class="pager-card__title">{newer.data.title}</span>
+            </a>
+          ) : (
+            <span class="pager-card pager-card--empty" aria-hidden="true"></span>
+          )}
+          {older ? (
+            <a class="pager-card pager-card--next" href={`/blog/${older.id}/`}>
+              <span class="pager-card__label">下一篇（更早）→</span>
+              <span class="pager-card__title">{older.data.title}</span>
+            </a>
+          ) : (
+            <span class="pager-card pager-card--empty" aria-hidden="true"></span>
+          )}
+        </nav>
+
+        <section class="comments-box" aria-label="评论区">
+          <div class="comments-placeholder">
+            ✦ 本站没有装评论系统 —— 想说的话请去
+            <a href="/guestbook/">留言板</a>，或者直接发邮件。
+            <br />
+            如果发现文章里有错误，欢迎告诉我，我会尽快修正并
+            <code>git commit</code>。
+          </div>
+        </section>
+      </div>
+
+      <aside class="post-aside">
+        {
+          toc.length > 0 && (
+            <WindowFrame title="目录" icon="≡">
+              <nav class="toc" aria-label="文章目录">
+                <p class="toc__title">INDEX ／ {toc.length} 段</p>
+                <ol>
+                  {toc.map((heading) => (
+                    <li class:list={[heading.depth === 3 && 'toc-h3']}>
+                      <a href={`#${heading.slug}`}>{heading.text}</a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
+            </WindowFrame>
+          )
+        }
+
+        <WindowFrame title="关于这篇" icon="✎" variant="cyan">
+          <div class="aside-note">
+            <p>
+              <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+              发出，约 {minutes} 分钟可以读完。
+            </p>
+            <p>本文采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>，转载请保留出处。</p>
+            <p><a href="/blog/">← 回到博客列表</a></p>
+          </div>
+        </WindowFrame>
+      </aside>
+    </div>
+  </article>
+</BaseLayout>

@@ -1,0 +1,186 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import WindowFrame from '../components/WindowFrame.astro';
+import VisitorCounter from '../components/VisitorCounter.astro';
+import { REPOS } from '../data/repos';
+
+const skills = [
+  { label: 'HTML / CSS', value: 82 },
+  { label: 'JavaScript', value: 68 },
+  { label: 'Python', value: 74 },
+  { label: 'C / 单片机', value: 55 },
+  { label: '光学实验', value: 60 },
+  { label: '像素美术', value: 47 },
+];
+
+const timeline = [
+  { year: '2026', text: '现在 —— 一边啃《光学》，一边把这个博客从零搭起来。' },
+  { year: '2026', text: '秋天，正式成为光电专业的大一学生，拥有了自己的实验台。' },
+  { year: '2025', text: '高中毕业。把三年的错题本上传到了 GitHub，意外收获了几个 star。' },
+  { year: '2024', text: '第一次用 HTML 写出个人主页，背景是闪烁的星空 GIF。' },
+  { year: '2020', text: '有了自己的旧笔记本电脑，从此开始半夜偷偷写代码。' },
+];
+
+const favs = [
+  { h: '音乐', p: 'Air / K-On! / bank band。写代码时循环鳥の詩已经三年。' },
+  { h: '动画', p: '《孤独摇滚》《日常》《攻壳机动队》。深夜档忠実观众。' },
+  { h: '游戏', p: '星露谷物语 / Minecraft / 东方project（打不过 E 盖但喜欢听曲子）。' },
+  { h: '书', p: '《光学》赵凯华、《编码》、以及各种旧电脑杂志的扫描件。' },
+];
+
+const gear = [
+  { k: '主力机', v: '大二 acquisitions 前的旧游戏本（i5 / 16G / 没有独显）' },
+  { k: '键盘', v: '客制化 65% ／ Gateron 黄轴 ／ 键帽是二手淘宝货' },
+  { k: '编辑器', v: 'Neovim（以及写不动的 VS Code）' },
+  { k: '终端', v: 'Windows Terminal ／ 半透明 ／ 字号 12' },
+  { k: '字体', v: 'Zpix 像素字 ／ 等宽用 Sarasa Mono' },
+  { k: '实验台', v: '示波器（二手）＋ 焊台 ＋ 一堆散装 LED' },
+];
+
+const socials = [
+  { label: 'GitHub', href: SITE.author.github },
+  { label: 'Bilibili', href: SITE.author.bilibili },
+  { label: 'Bangumi', href: SITE.author.bangumi },
+];
+---
+
+<BaseLayout title="关于" description={`关于${SITE.author.name}：光电专业大一学生、业余前端、深夜动画放映员。`}>
+  <Breadcrumb items={[{ label: '关于' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">ABOUT ／ 关于站长</p>
+    <h1>关于</h1>
+    <p class="page-head__lead">
+      你好，我是{SITE.author.name}。白天和光打交道，晚上和代码打交道，偶尔把两者混在一起。
+    </p>
+  </header>
+
+  <div class="about-grid">
+    <aside>
+      <WindowFrame title="站长卡片" icon="☺" flush bodyClass="profile-card-body">
+        <div class="profile-card">
+          <div class="profile-card__top">
+            <div class="profile-card__avatar">
+              <img src={SITE.author.avatar} alt={`${SITE.author.name} 的头像`} width="120" height="120" />
+            </div>
+            <p class="profile-card__name">{SITE.author.name}</p>
+            <p class="profile-card__handle">@{SITE.author.handle} ／ {SITE.author.location}</p>
+            <p class="profile-card__bio">{SITE.author.bio}</p>
+          </div>
+          <div class="profile-card__socials">
+            {
+              socials.map((item) => (
+                <a href={item.href} target="_blank" rel="noopener">
+                  {item.label} ↗
+                </a>
+              ))
+            }
+            <a href={`mailto:${SITE.author.email}`}>EMAIL</a>
+          </div>
+          <div class="profile-stats">
+            <div><b>{REPOS.length}</b><span>REPOS</span></div>
+            <div><b>6</b><span>ARTICLES</span></div>
+            <div><b>∞</b><span>NOTES</span></div>
+          </div>
+          <div class="window__body">
+            <VisitorCounter label="累计电波" />
+          </div>
+        </div>
+      </WindowFrame>
+    </aside>
+
+    <div class="about-main">
+      <section class="about-section">
+        <div class="about-block">
+          <h2>✦ 简单的自我介绍</h2>
+          <div class="prose">
+            <p>
+              我是{SITE.author.name}（{SITE.author.handle}），光电信息专业的
+              大一学生，住在一座靠海的城市。白天在实验室里调激光，晚上回到宿舍
+              敲网页 —— 这个博客就是我两种生活的交汇点。
+            </p>
+            <p>
+              我喜欢把东西做出来放在网上：像素素材、芯片音乐、LED 立方，还有你
+              现在看到的这个复古小站。它们都不完美，但它们都存在。
+            </p>
+            <p>
+              如果你想找我聊聊技术、动画或者只是打声招呼，
+              <a href="/guestbook/">留言板</a>永远开放。
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="about-block">
+          <h2>✦ 技能雷达（伪）</h2>
+          <div class="skill-list">
+            {
+              skills.map((skill) => (
+                <div class="skill-row">
+                  <span class="skill-row__label">{skill.label}</span>
+                  <span class="skill-track">
+                    <span class="skill-fill" style={`width:${skill.value}%`} />
+                  </span>
+                  <span class="skill-row__value">{skill.value}%</span>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="about-block">
+          <h2>✦ 时间线</h2>
+          <ol class="life-timeline">
+            {
+              timeline.map((item) => (
+                <li>
+                  <span class="life-timeline__year">{item.year}</span>
+                  <p><b>{item.text.slice(0, 2)}</b>{item.text.slice(2)}</p>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="about-block">
+          <h2>✦ 最近喜欢的东西</h2>
+          <div class="fav-grid">
+            {
+              favs.map((fav) => (
+                <div class="fav-item">
+                  <h4>{fav.h}</h4>
+                  <p>{fav.p}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="about-section">
+        <div class="about-block">
+          <h2>✦ 装备一览</h2>
+          <table class="gear-table">
+            <tbody>
+              {
+                gear.map((item) => (
+                  <tr>
+                    <th scope="row">{item.k}</th>
+                    <td>{item.v}</td>
+                  </tr>
+                ))
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

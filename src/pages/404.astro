@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { NAV, SUB_NAV, SITE } from '../config';
+---
+
+<BaseLayout
+  title="404 找不到这一页"
+  description="这一页的电波消失了，也许它从来没有存在过。"
+  noindex
+>
+  <section class="error-page">
+    <p class="error-code" aria-hidden="true">404</p>
+    <img src="/img/404.png" alt="一只找不到信号的像素幽灵" width="240" height="240" />
+    <h1>信号丢失了。</h1>
+    <p>
+      你要找的页面可能被移动、被删除，或者从一开始就只是一段噪声。
+      检查一下地址，或者从下面重新接上电波。
+    </p>
+
+    <div class="error-actions">
+      <a class="pixel-btn" href="/">回到主页</a>
+      <a class="pixel-btn pixel-btn--cyan" href="/blog/">去博客看看</a>
+      <button class="pixel-btn pixel-btn--ghost" type="button" data-search-open>
+        <span aria-hidden="true">⌕</span> 搜一下
+      </button>
+    </div>
+
+    <div class="breadcrumb" style="justify-content:center;margin-top:26px">
+      {
+        [...NAV, ...SUB_NAV].slice(1).map((item) => (
+          <a href={item.href}>{item.label}</a>
+        ))
+      }
+    </div>
+
+    <p class="mono faint small" style="margin-top:22px">
+      {SITE.title} ／ ERROR 404 ／ NOT FOUND
+    </p>
+  </section>
+</BaseLayout>

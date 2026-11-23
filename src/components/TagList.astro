@@ -1,0 +1,20 @@
+---
+interface Props {
+  tags: string[];
+  linked?: boolean;
+  max?: number;
+}
+
+const { tags = [], linked = true, max } = Astro.props;
+const shown = typeof max === 'number' ? tags.slice(0, max) : tags;
+---
+
+<div class="tag-row">
+  {shown.map((tag) =>
+    linked ? (
+      <a class="tag" href={`/blog/tags/${tag}/`}>{tag}</a>
+    ) : (
+      <span class="tag">{tag}</span>
+    )
+  )}
+</div>

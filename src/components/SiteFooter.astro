@@ -1,0 +1,82 @@
+---
+import { SITE, NAV, SUB_NAV, SOCIALS, BADGES, WEBRING } from '../config';
+import VisitorCounter from './VisitorCounter.astro';
+
+const year = new Date().getFullYear();
+const buildTime = new Date();
+---
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-badges badge-strip">
+      {BADGES.map((badge) => (
+        <a href={badge.src.startsWith('/img/badges/hoshikuzu') ? '/' : '#'} aria-label={badge.alt}>
+          <img src={badge.src} alt={badge.alt} width="88" height="31" loading="lazy" />
+        </a>
+      ))}
+    </div>
+
+    <div class="footer-grid">
+      <div class="footer-col">
+        <h4>✦ 关于这个小站</h4>
+        <p>
+          {SITE.title}（{SITE.titleReading}）是一个古早二次元风格的个人博客。
+          没有算法推荐，没有开屏广告，只有一些电波、像素和碎碎念。
+        </p>
+        <VisitorCounter label="累计电波" />
+        <p class="footer-build">
+          SINCE {SITE.since} ／ 由 Astro 驱动 ／ 部署于 Cloudflare Pages
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <h4>✦ 站内地图</h4>
+        <ul>
+          {NAV.map((item) => <li><a href={item.href}>{item.label} {item.labelEn}</a></li>)}
+          {SUB_NAV.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h4>✦ 电波连接</h4>
+        <ul>
+          {SOCIALS.map((item) => (
+            <li>
+              <a href={item.href} rel={item.href.startsWith('http') ? 'noopener' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))}
+          <li><a href="/guestbook/">留言板</a></li>
+          <li><a href={`mailto:${SITE.author.email}`}>写邮件</a></li>
+        </ul>
+        <div class="webring" style="margin-top:14px">
+          <span class="webring__name">◈ {WEBRING.name}</span>
+          <div class="webring__links">
+            <a href={WEBRING.prev.href}>{WEBRING.prev.label}</a>
+            <a href={WEBRING.random.href}>{WEBRING.random.label}</a>
+            <a href={WEBRING.next.href}>{WEBRING.next.label}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>
+        © {year} {SITE.title} ／ 内容采用
+        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="noopener">CC BY-NC-SA 4.0</a>
+        ／ 转载请先发一封电波
+      </p>
+      <p class="footer-build">
+        BEST VIEWED WITH A CRT MONITOR AT 1024×768 ／ BUILD {buildTime.toISOString().slice(0, 16).replace('T', ' ')}
+      </p>
+    </div>
+    <div class="footer-bottom" style="border-top:0;margin-top:6px;padding-top:0">
+      <p>
+        用 <span class="heart">♥</span> 和手写的 CSS 搭建 ／ 像素素材由 Python + Pillow 生成 ／
+        本站不使用追踪脚本
+      </p>
+      <p><a href="#main">↑ 回到顶部</a></p>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,27 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+.astro/
+
+# 本地环境变量
+.env
+.env.*
+!.env.example
+
+# 系统 / 工具
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
+
+# 沙箱修复备份（本机专用，勿提交）
+.dsh-acl-recovery/
+
+# 字体源文件仅用于本地生成素材，不部署
+scripts/fonts/
+
+# 生成素材的中间产物
+scripts/__pycache__/

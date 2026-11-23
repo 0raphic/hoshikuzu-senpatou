@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE } from '../config';
+import { FRIENDS, APPLY_STEPS } from '../data/friends';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import WindowFrame from '../components/WindowFrame.astro';
+
+const friends = [...FRIENDS].sort((a, b) => (a.order ?? 99) - (b.order ?? 99));
+const badgeHtml = `<a href="${SITE.url}/" target="_blank" rel="noopener"><img src="${SITE.url}/img/badges/hoshikuzu.png" alt="${SITE.title}" width="88" height="31"></a>`;
+---
+
+<BaseLayout title="友链" description="星屑電波塔的邻居们：一群还在写博客的人。">
+  <Breadcrumb items={[{ label: '友链' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">LINKS ／ 附近的电波</p>
+    <h1>友链</h1>
+    <p class="page-head__lead">
+      这里是我的邻居们。都是还在手动更新、没有算法推荐的小站，欢迎去串门。
+    </p>
+    <div class="page-head__meta">
+      <span>邻居 <b>{friends.length}</b> 位</span>
+      <span>最近串门 <b>{friends[0]?.visited ?? '—'}</b></span>
+    </div>
+  </header>
+
+  <div class="friend-grid">
+    {
+      friends.map((friend) => (
+        <article class="friend-card">
+          <div class="friend-card__avatar">
+            <img
+              src={friend.avatar}
+              alt={`${friend.name} 的头像`}
+              width="64"
+              height="64"
+              loading="lazy"
+            />
+          </div>
+          <div class="friend-card__body">
+            <h3 class="friend-card__name">
+              <a href={friend.url} target="_blank" rel="noopener">
+                {friend.name}
+              </a>
+            </h3>
+            <p class="friend-card__desc">{friend.desc}</p>
+            <div class="friend-card__foot">
+              {friend.badge ? (
+                <img
+                  src={friend.badge}
+                  alt={`${friend.name} 的徽章`}
+                  width="88"
+                  height="31"
+                  loading="lazy"
+                />
+              ) : (
+                <span class="faint small">— 没有徽章 —</span>
+              )}
+              <span class="friend-card__visit">串门 {friend.visited ?? '—'}</span>
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <section class="home-section" style="margin-top:34px">
+    <div class="friends-info">
+      <WindowFrame title="本站徽章" icon="◉">
+        <div class="badge-preview">
+          <img src="/img/badges/hoshikuzu.png" alt={`${SITE.title} 徽章`} width="88" height="31" />
+          <span class="small faint">88 × 31</span>
+        </div>
+        <div class="copy-field">
+          <input readonly value={badgeHtml} aria-label="徽章 HTML 代码" />
+          <button class="pixel-btn pixel-btn--sm" type="button" data-copy={badgeHtml}>复制</button>
+        </div>
+        <p class="small faint" style="margin:10px 0 0">
+          站名：{SITE.title} ／ {SITE.titleReading}<br />
+          地址：{SITE.url}<br />
+          简介：{SITE.subtitle}
+        </p>
+      </WindowFrame>
+
+      <WindowFrame title="申请友链" icon="✎" variant="cyan">
+        <ol class="apply-steps">
+          {APPLY_STEPS.map((step) => <li>{step}</li>)}
+        </ol>
+        <p class="small faint" style="margin:12px 0 0">
+          把这段放进你的友链页即可。
+        </p>
+      </WindowFrame>
+    </div>
+  </section>
+
+  <p class="center mono faint small" style="margin-top:26px">
+    ✦ 这一页的邻居还在陆续搬进来，欢迎去 <a href="/guestbook/">留言板</a> 递名片 ✦
+  </p>
+</BaseLayout>
+
+<style>
+  .friends-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .friends-info {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

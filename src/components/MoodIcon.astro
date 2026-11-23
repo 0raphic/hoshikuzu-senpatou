@@ -1,0 +1,44 @@
+---
+import type { Mood } from '../types';
+
+interface Props {
+  mood: Mood;
+  size?: number;
+  label?: boolean;
+  class?: string;
+}
+
+const { mood, size = 18, label = false, class: className = '' } = Astro.props;
+
+const labels: Record<Mood, string> = {
+  star: '看见了星星',
+  moon: '月面时刻',
+  coffee: '咖啡因摄入',
+  cat: '猫出没',
+  music: '在听歌',
+  heart: '心动',
+  cloud: '发呆',
+  rain: '下雨了',
+  snow: '下雪了',
+  game: '在打游戏',
+  book: '在看书',
+  sparkle: '闪闪发光',
+};
+---
+
+<span class:list={['mood-inline', className]}>
+  <img src={`/img/moods/${mood}.png`} alt={labels[mood]} width={size} height={size} loading="lazy" />
+  {label && <span>{labels[mood]}</span>}
+</span>
+
+<style>
+  .mood-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .mood-inline img {
+    image-rendering: pixelated;
+    filter: drop-shadow(0 0 4px rgba(255, 122, 217, 0.45));
+  }
+</style>

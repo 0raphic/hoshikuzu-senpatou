@@ -1,0 +1,24 @@
+{
+  "name": "hoshikuzu-denpatou",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "星屑電波塔 — 一个古早二次元风格的个人博客（Astro + Cloudflare Pages）",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "gen:assets": "python scripts/gen_assets.py",
+    "deploy": "wrangler pages deploy dist"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.19",
+    "@astrojs/sitemap": "^3.7.6",
+    "astro": "^5.18.2"
+  }
+}

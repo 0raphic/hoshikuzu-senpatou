@@ -1,0 +1,52 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { sortByDateDesc, isPublished, tagCounts, formatDate } from '../../../utils';
+import PostCard from '../../../components/PostCard.astro';
+import Breadcrumb from '../../../components/Breadcrumb.astro';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', isPublished);
+  const tags = tagCounts(posts).map((item) => item.tag);
+  return tags.map((tag) => ({
+    params: { tag },
+    props: { tag, posts: posts.filter((post) => post.data.tags.includes(tag)) },
+  }));
+}
+
+interface Props {
+  tag: string;
+  posts: any[];
+}
+
+const { tag, posts } = Astro.props;
+const allTags = tagCounts(sortByDateDesc(await getCollection('blog', isPublished)));
+const latest = posts[0] ? formatDate(posts[0].data.date) : '—';
+---
+
+<BaseLayout title={`标签：${tag}`} description={`所有带「${tag}」标签的文章，共 ${posts.length} 篇。`}>
+  <Breadcrumb items={[{ label: '博客', href: '/blog/' }, { label: '标签', href: '/tags/' }, { label: tag }]} />
+
+  <header class="tag-head">
+    <h1>#<span>{tag}</span></h1>
+    <span class="mono faint">{posts.length} 篇 ／ 最近 {latest}</span>
+  </header>
+
+  <div class="post-grid">
+    {posts.map((post) => <PostCard post={post} />)}
+  </div>
+
+  <section class="home-section" style="margin-top:34px">
+    <p class="mono faint small" style="margin-bottom:10px">其他标签 ›</p>
+    <div class="tag-cloud">
+      {
+        allTags.map((item) => (
+          <a href={`/blog/tags/${item.tag}/`} aria-current={item.tag === tag ? 'page' : undefined}>
+            #{item.tag}
+            <sup>{item.count}</sup>
+          </a>
+        ))
+      }
+    </div>
+  </section>
+</BaseLayout>

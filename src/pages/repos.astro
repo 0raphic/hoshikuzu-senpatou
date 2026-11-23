@@ -1,0 +1,100 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { REPOS, LANG_STATS } from '../data/repos';
+import { formatDate, isoDate } from '../utils';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+const pinned = REPOS.filter((repo) => repo.pinned).length;
+const stars = REPOS.reduce((sum, repo) => sum + repo.stars, 0);
+const archived = REPOS.filter((repo) => repo.status === 'archived').length;
+const sorted = [...REPOS].sort((a, b) => Number(b.pinned ?? false) - Number(a.pinned ?? false));
+---
+
+<BaseLayout title="仓库" description="我开源在 GitHub 上的仓库一览：博客、工具、硬件实验和配置文件。">
+  <Breadcrumb items={[{ label: '仓库' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">REPOS ／ 代码仓库</p>
+    <h1>仓库</h1>
+    <p class="page-head__lead">
+      一些开源的小东西。仓库数据是手动维护的快照，最新状态以 GitHub 为准。
+    </p>
+    <div class="page-head__meta">
+      <span>仓库 <b>{REPOS.length}</b> 个</span>
+      <span>星标合计 <b>{stars}</b></span>
+      <span>已归档 <b>{archived}</b> 个</span>
+    </div>
+  </header>
+
+  <div class="repo-summary">
+    <div class="repo-stat"><b>{REPOS.length}</b><span>REPOS</span></div>
+    <div class="repo-stat"><b>{stars}</b><span>STARS</span></div>
+    <div class="repo-stat"><b>{pinned}</b><span>PINNED</span></div>
+    <div class="repo-stat"><b>{LANG_STATS.length}</b><span>LANGS</span></div>
+  </div>
+
+  <section class="home-section" style="margin-bottom:26px">
+    <p class="mono faint small" style="margin-bottom:8px">语言分布 ›</p>
+    <div class="lang-bar" role="img" aria-label="语言分布条形图">
+      {
+        LANG_STATS.map((lang) => (
+          <i style={`width:${lang.value}%;background:${lang.color}`} title={`${lang.name} ${lang.value}%`} />
+        ))
+      }
+    </div>
+    <div class="lang-legend">
+      {
+        LANG_STATS.map((lang) => (
+          <span>
+            <i style={`background:${lang.color}`} />
+            {lang.name} {lang.value}%
+          </span>
+        ))
+      }
+    </div>
+  </section>
+
+  <div class="repo-list">
+    {
+      sorted.map((repo) => (
+        <article class="repo-card">
+          <div class="repo-card__head">
+            <span class="repo-card__icon" aria-hidden="true">⌗</span>
+            <a class="repo-card__name" href={repo.url} target="_blank" rel="noopener">
+              {repo.name}
+            </a>
+            {repo.pinned && <span class="repo-card__pin">PIN</span>}
+            {repo.status === 'archived' && <span class="repo-card__archived">ARCHIVED</span>}
+          </div>
+          <p class="repo-card__desc">{repo.description}</p>
+          {repo.topics.length > 0 && (
+            <div class="repo-card__topics">
+              {repo.topics.map((topic) => (
+                <span>{topic}</span>
+              ))}
+            </div>
+          )}
+          <div class="repo-card__meta">
+            <span>
+              <i class="lang-dot" style={`background:${repo.color}`} />
+              {repo.language}
+            </span>
+            <span>★ {repo.stars}</span>
+            <span>⑂ {repo.forks}</span>
+            <span>
+              <time datetime={isoDate(new Date(repo.updated))}>
+                更新于 {repo.updated}
+              </time>
+            </span>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <p class="mono faint small" style="margin-top:18px">
+    更完整的仓库列表与提交历史，请到
+    <a href="https://github.com/yourname" target="_blank" rel="noopener">github.com/yourname</a>
+    （数据截至 {formatDate(new Date(`${new Date().getFullYear()}-11-01T00:00:00+08:00`))}）。
+  </p>
+</BaseLayout>

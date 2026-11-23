@@ -1,0 +1,60 @@
+---
+import { formatDate, isoDate, readingTime, isNew } from '../utils';
+
+interface Props {
+  post: any;
+  /** compact 用于侧栏列表，wide 用于横跨整行的卡片 */
+  variant?: 'default' | 'compact' | 'wide';
+  showNew?: boolean;
+}
+
+const { post, variant = 'default', showNew = true } = Astro.props;
+const minutes = readingTime(post.body ?? '', post.data.minutes);
+const fresh = showNew && isNew(post.data.date);
+const cover = post.data.cover ?? '/img/covers/default.png';
+const href = `/blog/${post.id}/`;
+---
+
+{variant === 'compact' ? (
+  <a class="mini-list__item" href={href}>
+    <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+    <span class="mini-list__title">{post.data.title}</span>
+    {fresh && <span class="status-badge status-badge--new">NEW</span>}
+  </a>
+) : (
+  <article class:list={['post-card', variant === 'wide' && 'post-card--wide']}>
+    <a class="post-card__cover" href={href} tabindex="-1" aria-hidden="true">
+      <img src={cover} alt="" width="640" height="360" loading="lazy" decoding="async" />
+      <span class="post-card__scan" aria-hidden="true"></span>
+      {fresh && <span class="post-card__new">NEW</span>}
+    </a>
+    <div class="post-card__body">
+      <div class="post-card__meta">
+        <time datetime={isoDate(post.data.date)}>{formatDate(post.data.date)}</time>
+        <span aria-hidden="true">／</span>
+        <span>{minutes} 分钟</span>
+        {post.data.featured && <span class="post-card__pick" aria-hidden="true">★ 精选</span>}
+      </div>
+      <h3 class="post-card__title">
+        <a href={href}>{post.data.title}</a>
+      </h3>
+      <p class="post-card__desc">{post.data.description}</p>
+      <div class="post-card__foot">
+        <div class="tag-row" aria-label="标签">
+          {(post.data.tags ?? []).slice(0, 3).map((tag: string) => (
+            <a class="tag" href={`/blog/tags/${tag}/`}>{tag}</a>
+          ))}
+        </div>
+        <a class="post-card__more" href={href} aria-label={`阅读全文：${post.data.title}`}>
+          阅读 <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </div>
+  </article>
+)}
+
+<style>
+  .post-card--wide {
+    grid-column: 1 / -1;
+  }
+</style>

@@ -1,0 +1,56 @@
+<div class="search-modal" id="search-modal" hidden>
+  <div class="search-modal__backdrop" data-search-close></div>
+  <div class="search-panel window" role="dialog" aria-modal="true" aria-labelledby="search-title">
+    <div class="window__bar">
+      <span class="window__title" id="search-title"><span aria-hidden="true">⌕</span> 站内检索</span>
+      <button class="search-close" type="button" data-search-close aria-label="关闭搜索">×</button>
+    </div>
+    <div class="window__body search-panel__body">
+      <div class="search-input-wrap">
+        <span class="prompt" aria-hidden="true">＞</span>
+        <input
+          id="search-input"
+          type="search"
+          name="q"
+          placeholder="输入关键词：Astro / 像素 / 月亮 / 碎碎念…"
+          autocomplete="off"
+          spellcheck="false"
+          aria-controls="search-results"
+        />
+        <kbd>ESC</kbd>
+      </div>
+      <div class="search-hints">
+        <span>↑↓ 选择</span>
+        <span>ENTER 打开</span>
+        <span>支持标题 / 标签 / 正文</span>
+      </div>
+      <ul class="search-results" id="search-results" aria-live="polite">
+        <li class="search-results__empty">
+          输入关键词开始检索，或按 <kbd>Ctrl</kbd> + <kbd>K</kbd> 呼出本窗口。
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<style>
+  .search-close {
+    color: var(--ink);
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    padding: 0 4px;
+    border: 0;
+    background: transparent;
+  }
+  .search-results__empty {
+    padding: 14px 4px;
+    font-size: 12px;
+    color: var(--faint);
+    line-height: 1.8;
+  }
+  .search-results__empty kbd {
+    border: 1px solid var(--line);
+    padding: 0 4px;
+    background: var(--panel-2);
+  }
+</style>

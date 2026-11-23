@@ -1,0 +1,83 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection, render } from 'astro:content';
+import { sortByDateDesc, isPublished, formatDate, isoDate, formatMonthDay } from '../utils';
+import type { Mood } from '../types';
+import MoodIcon from '../components/MoodIcon.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+const notes = sortByDateDesc(await getCollection('notes', isPublished));
+const rendered = await Promise.all(
+  notes.map(async (note) => ({ note, Content: (await render(note)).Content })),
+);
+
+const moods: Mood[] = [
+  'star', 'moon', 'coffee', 'cat', 'music', 'heart', 'cloud', 'rain', 'snow', 'game', 'book', 'sparkle',
+];
+const moodCount = new Map<string, number>();
+for (const note of notes) moodCount.set(note.data.mood, (moodCount.get(note.data.mood) ?? 0) + 1);
+---
+
+<BaseLayout title="碎碎念" description="没有营养的日常电波：一句吐槽、一张截图、一段深夜的胡思乱想。">
+  <Breadcrumb items={[{ label: '碎碎念' }]} />
+
+  <div class="notes-page">
+    <header class="page-head">
+      <p class="page-head__kicker">NOTES ／ 日常电波</p>
+      <h1>碎碎念</h1>
+      <p class="page-head__lead">太短、太碎、不值得写成文章的东西，都倒进这条时间线里。</p>
+    </header>
+
+    <p class="notes-intro">
+      <img src="/img/moods/star.png" alt="" width="28" height="28" loading="lazy" />
+      <span>
+        共 <strong>{notes.length}</strong> 条碎碎念 —— 按「心情」筛选，点第一个按钮恢复全部。
+      </span>
+    </p>
+
+    <div class="mood-filter" role="group" aria-label="按心情筛选">
+      <button class="mood-btn" type="button" data-mood="all" aria-pressed="true">全部</button>
+      {
+        moods.map((mood) => (
+          <button class="mood-btn" type="button" data-mood={mood} aria-pressed="false">
+            <img src={`/img/moods/${mood}.png`} alt="" width="16" height="16" loading="lazy" />
+            {moodCount.get(mood) ?? 0}
+          </button>
+        ))
+      }
+    </div>
+
+    <ol class="timeline">
+      {
+        rendered.map(({ note, Content }) => (
+          <li class="timeline__item" data-mood={note.data.mood}>
+            <article class:list={['note-card', note.data.pinned && 'note-card--pinned']}>
+              <div class="note-card__head">
+                <span class="note-card__mood">
+                  <MoodIcon mood={note.data.mood} size={18} />
+                </span>
+                <time datetime={isoDate(note.data.date)}>{formatDate(note.data.date)}</time>
+                <span class="note-card__date">{formatMonthDay(note.data.date)}</span>
+                {note.data.pinned && <span class="note-card__pin">📌 置顶</span>}
+              </div>
+              <div class="note-card__body">
+                <Content />
+              </div>
+              {note.data.tags.length > 0 && (
+                <div class="note-card__foot tag-row">
+                  {note.data.tags.map((tag) => (
+                    <span class="tag">{tag}</span>
+                  ))}
+                </div>
+              )}
+            </article>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="notes-empty" id="notes-filter-empty" hidden>
+      这个心情的碎碎念还没有写……回头补上。
+    </p>
+  </div>
+</BaseLayout>

@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { sortByDateDesc, isPublished, tagCounts } from '../utils';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+const posts = sortByDateDesc(await getCollection('blog', isPublished));
+const tags = tagCounts(posts);
+const counts = Object.fromEntries(tags.map((item) => [item.tag, item.count]));
+const max = Math.max(1, ...tags.map((item) => item.count));
+---
+
+<BaseLayout title="标签" description="按标签浏览星屑電波塔的全部文章。">
+  <Breadcrumb items={[{ label: '博客', href: '/blog/' }, { label: '标签' }]} />
+
+  <header class="page-head">
+    <p class="page-head__kicker">TAGS ／ 关键词索引</p>
+    <h1>标签</h1>
+    <p class="page-head__lead">
+      点一下标签，就能看到所有带这个词的文章。字号越大表示文章越多 —— 不过这里还很小，差别不明显。
+    </p>
+    <div class="page-head__meta">
+      <span>共 <b>{tags.length}</b> 个标签</span>
+      <span>覆盖 <b>{posts.length}</b> 篇文章</span>
+    </div>
+  </header>
+
+  <div class="tag-cloud">
+    {
+      tags.map((item) => (
+        <a
+          href={`/blog/tags/${item.tag}/`}
+          style={`font-size:${(0.95 + (item.count / max) * 0.55).toFixed(2)}rem`}
+        >
+          #{item.tag}
+          <sup>{item.count}</sup>
+        </a>
+      ))
+    }
+  </div>
+
+  <section class="home-section" style="margin-top:34px">
+    <p class="mono faint small" style="margin-bottom:10px">标签统计 ›</p>
+    <table class="archive-table">
+      <tbody>
+        {
+          tags.map((item) => (
+            <tr>
+              <td class="archive-date">#{item.tag}</td>
+              <td class="archive-title">
+                <a href={`/blog/tags/${item.tag}/`}>查看 {counts[item.tag]} 篇文章</a>
+              </td>
+              <td class="archive-tags">
+                <span class="tag">{item.count} 篇</span>
+              </td>
+            </tr>
+          ))
+        }
+      </tbody>
+    </table>
+  </section>
+</BaseLayout>

@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { sortByDateDesc, isPublished, tagCounts, formatDate, isoDate, readingTime } from '../../utils';
+import PostCard from '../../components/PostCard.astro';
+import TagList from '../../components/TagList.astro';
+
+const posts = sortByDateDesc(await getCollection('blog', isPublished));
+const featured = posts.find((post) => post.data.featured) ?? posts[0];
+const rest = posts.filter((post) => post !== featured);
+const tags = tagCounts(posts).slice(0, 8);
+---
+
+<BaseLayout title="博客" description="星屑電波塔的日志归档：前端、光学实验、像素美术和一些没什么用的技术笔记。">
+  <header class="page-head">
+    <p class="page-head__kicker">BLOG ／ 电波日志</p>
+    <h1>博客</h1>
+    <p class="page-head__lead">
+      这里存放我写过的长文：前端实践、光学实验记录、像素美术流程，以及一些写给自己看的笔记。
+    </p>
+    <div class="page-head__meta">
+      <span>共 <b>{posts.length}</b> 篇</span>
+      <span>标签 <b>{tagCounts(posts).length}</b> 个</span>
+      <span>最近更新 <b>{posts[0] ? formatDate(posts[0].data.date) : '—'}</b></span>
+    </div>
+  </header>
+
+  {
+    featured && (
+      <a class="featured-post" href={`/blog/${featured.id}/`}>
+        <div class="featured-post__cover">
+          <img
+            src={featured.data.cover ?? '/img/covers/default.png'}
+            alt={featured.data.title}
+            width="640"
+            height="320"
+            loading="lazy"
+          />
+          <span class="featured-post__flag status-badge status-badge--new">★ 精选</span>
+        </div>
+        <div class="featured-post__body">
+          <div class="post-card__meta">
+            <time datetime={isoDate(featured.data.date)}>{formatDate(featured.data.date)}</time>
+            <span aria-hidden="true">／</span>
+            <span>{readingTime(featured.body ?? '', featured.data.minutes)} 分钟</span>
+          </div>
+          <h2>{featured.data.title}</h2>
+          <p class="featured-post__desc">{featured.data.description}</p>
+          <TagList tags={featured.data.tags} linked={false} max={3} />
+        </div>
+      </a>
+    )
+  }
+
+  <div class="list-toolbar">
+    <div class="list-toolbar__tags">
+      {tags.map((tag) => <a class="tag" href={`/blog/tags/${tag.tag}/`}>{tag.tag} <sup>{tag.count}</sup></a>)}
+    </div>
+    <div class="list-toolbar__actions">
+      <a class="pixel-btn pixel-btn--sm pixel-btn--ghost" href="/archive/">按时间归档</a>
+      <a class="pixel-btn pixel-btn--sm pixel-btn--ghost" href="/rss.xml">RSS</a>
+    </div>
+  </div>
+
+  {
+    rest.length > 0 ? (
+      <div class="post-grid">
+        {rest.map((post) => (
+          <PostCard post={post} />
+        ))}
+      </div>
+    ) : (
+      <p class="empty">暂时只有这一篇，慢慢写。</p>
+    )
+  }
+</BaseLayout>

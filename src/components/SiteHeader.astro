@@ -1,0 +1,59 @@
+---
+import { SITE, NAV } from '../config';
+
+const pathname = Astro.url.pathname;
+
+function isActive(href: string): boolean {
+  if (href === '/') return pathname === '/';
+  return pathname === href || pathname.startsWith(href);
+}
+---
+
+<header class="site-header">
+  <div class="marquee-bar" aria-label="站点公告">
+    <div class="marquee">
+      <span>{SITE.announcement}</span>
+      <span aria-hidden="true">{SITE.announcement}</span>
+    </div>
+  </div>
+
+  <div class="header-main">
+    <a class="brand" href="/" aria-label={`${SITE.title} 首页`}>
+      <span class="brand__mark" aria-hidden="true">✦</span>
+      <span class="brand__text">
+        <strong>{SITE.title}</strong>
+        <small>{SITE.titleReading}</small>
+      </span>
+    </a>
+
+    <div class="header-tools">
+      <button class="tool-btn" type="button" data-search-open aria-label="打开搜索">
+        <span aria-hidden="true">⌕</span>
+        <span class="tool-btn__text">搜索</span>
+        <kbd class="tool-btn__kbd" aria-hidden="true">/</kbd>
+      </button>
+      <button class="tool-btn" type="button" data-theme-toggle aria-label="切换昼夜主题">
+        <span class="theme-icon" data-theme-icon aria-hidden="true">☀</span>
+        <span class="tool-btn__text" data-theme-label>白天</span>
+      </button>
+      <button class="tool-btn" type="button" data-bgm-toggle aria-pressed="false" title="播放/停止芯片音乐">
+        <span aria-hidden="true">♪</span>
+        <span class="tool-btn__text">BGM</span>
+      </button>
+    </div>
+  </div>
+
+  <nav class="site-nav" aria-label="主导航">
+    {NAV.map((item) => (
+      <a
+        class:list={['nav-item', { 'is-active': isActive(item.href) }]}
+        href={item.href}
+        aria-current={isActive(item.href) ? 'page' : undefined}
+      >
+        <span aria-hidden="true">{item.icon}</span>
+        {item.label}
+        <small aria-hidden="true">{item.labelEn}</small>
+      </a>
+    ))}
+  </nav>
+</header>

@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { isPublished, formatDate } from '../../utils';
+import SectionHead from '../../components/SectionHead.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+
+const works = (await getCollection('works', isPublished)).sort(
+  (a, b) => a.data.order - b.data.order || b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const done = works.filter((work) => work.data.status === '完成').length;
+const wip = works.filter((work) => work.data.status === '制作中').length;
+---
+
+<BaseLayout title="作品集" description="我做过的东西：硬件小制作、网页玩具和一些半途而废的实验。">
+  <header class="page-head">
+    <p class="page-head__kicker">WORKS ／ 作品陈列室</p>
+    <h1>作品集</h1>
+    <p class="page-head__lead">
+      从 LED 立方到网页玩具，都是学习路上的副产物。东西不大，但都是亲手焊的、亲手写的。
+    </p>
+    <div class="page-head__meta">
+      <span>共 <b>{works.length}</b> 件</span>
+      <span>完成 <b>{done}</b> 件</span>
+      <span>制作中 <b>{wip}</b> 件</span>
+    </div>
+  </header>
+
+  <div class="works-grid">
+    {
+      works.map((work, i) => (
+        <article class:list={['work-card', i === 0 && 'work-card--wide']}>
+          <a class="work-card__cover" href={`/works/${work.id}/`} tabindex="-1" aria-hidden="true">
+            <img
+              src={work.data.cover ?? '/img/covers/default.png'}
+              alt={work.data.title}
+              width="640"
+              height="360"
+              loading={i === 0 ? 'eager' : 'lazy'}
+            />
+            <span class="work-card__badges">
+              <StatusBadge status={work.data.status} />
+            </span>
+            <span class="work-card__year">{work.data.date.getFullYear()}</span>
+          </a>
+          <div class="work-card__body">
+            <h3 class="work-card__title">
+              <a href={`/works/${work.id}/`}>{work.data.title}</a>
+            </h3>
+            <p class="work-card__tagline">{work.data.tagline}</p>
+            <p class="work-card__desc">{work.data.description}</p>
+            <div class="work-card__stack tag-row" aria-label="技术栈">
+              {work.data.stack.map((item) => (
+                <span class="tag">{item}</span>
+              ))}
+            </div>
+            <div class="work-card__links">
+              <a class="pixel-btn pixel-btn--sm" href={`/works/${work.id}/`}>
+                详情 <span aria-hidden="true">→</span>
+              </a>
+              {work.data.links.slice(0, 2).map((link) => (
+                <a
+                  class="pixel-btn pixel-btn--sm pixel-btn--ghost"
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+          </div>
+        </article>
+      ))
+    }
+  </div>
+
+  <section class="home-section" style="margin-top:36px">
+    <SectionHead title="关于更新" en="ABOUT UPDATES" icon="✦" href="/notes/" />
+    <p class="muted small">
+      这里的日期是项目开始的时间。想看制作过程的碎碎念，去
+      <a href="/notes/">碎碎念</a> 页面翻一翻，或者订阅 <a href="/rss.xml">RSS</a>。
+    </p>
+  </section>
+</BaseLayout>
