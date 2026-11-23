@@ -335,40 +335,63 @@ def make_sun() -> None:
 
 
 def make_avatar() -> None:
+    """安媞莉娅：银紫短发 + 星星发夹，40×40 逻辑像素，4 倍最近邻放大。"""
     art = 40
-    img = Image.new("RGB", (art, art), rgb("#24103d"))
+    bg, dot = rgb("#24103d"), rgb("#3a1c63")
+    hair, hair_light, hair_shade = rgb("#c8c4e8"), rgb("#e6e3ff"), rgb("#9a94c9")
+    skin, skin_shade = rgb("#ffe3d3"), rgb("#f2c8b4")
+    ink = rgb("#3b1b5e")
+    blush, lip = rgb("#ffb0d8"), rgb("#c2457f")
+    cloth, collar, ribbon = rgb("#2b2350"), rgb("#f3edff"), rgb("#f4a3d8")
+
+    img = Image.new("RGB", (art, art), bg)
     draw = ImageDraw.Draw(img)
+
+    def box(x0: int, y0: int, x1: int, y1: int, color: tuple[int, ...]) -> None:
+        draw.rectangle((x0, y0, x1, y1), fill=color)
+
     for y in range(art):
         for x in range(art):
             if (x + y) % 9 == 0:
-                draw.point((x, y), fill=rgb("#3a1c63"))
-    # 头发
-    draw.rectangle((6, 4, 33, 38), fill=rgb("#8f6fe8"))
-    draw.rectangle((4, 10, 35, 30), fill=rgb("#8f6fe8"))
-    draw.rectangle((8, 2, 31, 8), fill=rgb("#a98bff"))
+                draw.point((x, y), fill=dot)
+
+    # 后发（短发只到下颌）
+    box(8, 4, 31, 24, hair)
     # 脸
-    draw.rectangle((10, 9, 29, 29), fill=rgb("#ffe3d3"))
-    draw.rectangle((11, 8, 28, 12), fill=rgb("#ffe3d3"))
-    # 刘海
-    draw.rectangle((8, 6, 31, 11), fill=rgb("#8f6fe8"))
-    draw.rectangle((8, 11, 12, 20), fill=rgb("#8f6fe8"))
-    draw.rectangle((27, 11, 31, 22), fill=rgb("#8f6fe8"))
+    box(11, 10, 28, 26, skin)
+    # 脖子
+    box(18, 26, 21, 30, skin_shade)
+    # 头顶与高光
+    box(8, 3, 31, 10, hair)
+    box(10, 3, 25, 4, hair_light)
+    # 两侧鬓发
+    box(8, 8, 11, 24, hair)
+    box(28, 8, 31, 24, hair)
+    box(8, 8, 9, 24, hair_shade)
+    box(30, 8, 31, 24, hair_shade)
+    # 刘海（参差的短款）
+    box(10, 8, 29, 12, hair)
+    for x0, x1, y1 in ((11, 14, 15), (15, 18, 13), (19, 22, 14), (23, 26, 13), (27, 29, 15)):
+        box(x0, 12, x1, y1, hair)
+    box(12, 9, 20, 9, hair_light)
+    box(23, 9, 28, 9, hair_light)
     # 眼睛
-    draw.rectangle((13, 14, 16, 18), fill=rgb("#3b1b5e"))
-    draw.rectangle((23, 14, 26, 18), fill=rgb("#3b1b5e"))
-    draw.rectangle((14, 14, 15, 15), fill=rgb("#ffffff"))
-    draw.rectangle((24, 14, 25, 15), fill=rgb("#ffffff"))
-    draw.rectangle((13, 19, 17, 20), fill=rgb("#ffb0d8"))
-    draw.rectangle((22, 19, 26, 20), fill=rgb("#ffb0d8"))
-    # 嘴
-    draw.rectangle((19, 22, 21, 23), fill=rgb("#c2457f"))
-    # 水手服
-    draw.rectangle((8, 30, 31, 39), fill=rgb("#2b2350"))
-    draw.polygon([(12, 30), (20, 36), (28, 30)], fill=rgb("#f3edff"))
-    draw.rectangle((18, 33, 22, 39), fill=rgb("#ff7ad9"))
-    # 星星发夹
-    for gx, gy in ((5, 4), (6, 3), (7, 4), (6, 5), (6, 6)):
-        draw.point((gx, gy), fill=rgb("#ffe08a"))
+    box(14, 17, 17, 20, ink)
+    box(22, 17, 25, 20, ink)
+    draw.point((14, 17), fill=rgb("#ffffff"))
+    draw.point((22, 17), fill=rgb("#ffffff"))
+    # 腮红 / 嘴
+    box(13, 21, 16, 22, blush)
+    box(23, 21, 26, 22, blush)
+    box(19, 23, 21, 24, lip)
+    # 水手服 + 领巾
+    box(9, 30, 30, 39, cloth)
+    draw.polygon([(13, 30), (19, 34), (26, 30)], fill=collar)
+    box(18, 31, 21, 34, ribbon)
+    # 星星发夹（左上，压在发际线上）
+    for gx, gy in ((9, 6), (8, 6), (10, 6), (9, 5), (9, 7)):
+        draw.point((gx, gy), fill=rgb("#f6dfa6"))
+
     img.resize((160, 160), Image.Resampling.NEAREST).save(IMG / "avatar.png")
 
 

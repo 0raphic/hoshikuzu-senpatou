@@ -3,6 +3,7 @@ import '../styles/base.css';
 import '../styles/pages.css';
 import '../styles/prose.css';
 import { SITE } from '../config';
+import { ClientRouter } from 'astro:transitions';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SearchModal from '../components/SearchModal.astro';
@@ -38,6 +39,7 @@ const isHome = Astro.url.pathname === '/';
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
+    <ClientRouter />
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
 
@@ -80,6 +82,7 @@ const isHome = Astro.url.pathname === '/';
   </head>
 
   <body class={isHome ? 'is-home' : ''}>
+    <div class="nav-progress" aria-hidden="true"></div>
     <a class="skip-link" href="#main">跳到正文 ↓</a>
 
     <div class="bg-layer" aria-hidden="true">

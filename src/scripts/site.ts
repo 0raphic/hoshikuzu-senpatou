@@ -50,32 +50,79 @@ function syncThemeUI(theme: Theme = getTheme()): void {
   if (meta) meta.setAttribute('content', THEME_META[theme]);
 }
 
+/**
+ * 全局监听只绑一次。
+ * 站点启用了 <ClientRouter />，页面切换时脚本不会重新执行，
+ * 所以 document / window 级别的监听必须去重，页面级的东西则每页重新绑定。
+ */
+const onceBound = new Set<string>();
+function once(key: string, bind: () => void): void {
+  if (onceBound.has(key)) return;
+  onceBound.add(key);
+  bind();
+}
+
+/** Astro 的客户端路由事件名（都带冒号，写成常量免得散落各处） */
+const EVENT_PAGE_LOAD = 'astro:page-load';
+const EVENT_BEFORE_PREPARE = 'astro:before-preparation';
+const EVENT_BEFORE_SWAP = 'astro:before-swap';
+
+/** 切换页面时要拆掉的东西（观察者、RAF、window 监听……） */
+const pageCleanups: Array<() => void> = [];
+function onPageLeave(cleanup: () => void): void {
+  pageCleanups.push(cleanup);
+}
+function runPageCleanups(): void {
+  pageCleanups.splice(0).forEach((cleanup) => {
+    try {
+      cleanup();
+    } catch {
+      /* 清不掉就算了 */
+    }
+  });
+}
+
+/** 切换主题；支持的地方用 View Transition 做交叉淡化 */
+function applyTheme(next: Theme): void {
+  const swap = (): void => {
+    root.setAttribute('data-theme', next);
+    syncThemeUI(next);
+  };
+  const doc = document as Document & {
+    startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+  };
+  if (!prefersReducedMotion && typeof doc.startViewTransition === 'function') {
+    doc.startViewTransition(swap);
+  } else {
+    swap();
+  }
+}
+
 function initTheme(): void {
   syncThemeUI();
-  document.addEventListener('click', (event) => {
-    const target = event.target as Element | null;
-    if (!target?.closest('[data-theme-toggle]')) return;
-    const next: Theme = getTheme() === 'day' ? 'night' : 'day';
-    root.setAttribute('data-theme', next);
-    try {
-      localStorage.setItem(THEME_KEY, next);
-    } catch {
-      /* 隐私模式忽略 */
-    }
-    syncThemeUI(next);
-  });
+  once('theme', () => {
+    document.addEventListener('click', (event) => {
+      const target = event.target as Element | null;
+      if (!target?.closest('[data-theme-toggle]')) return;
+      const next: Theme = getTheme() === 'day' ? 'night' : 'day';
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        /* 隐私模式忽略 */
+      }
+      applyTheme(next);
+    });
 
-  // 用户没有手动选择时，跟随系统切换
-  const media = window.matchMedia('(prefers-color-scheme: light)');
-  media.addEventListener('change', (event) => {
-    try {
-      if (localStorage.getItem(THEME_KEY)) return;
-    } catch {
-      /* ignore */
-    }
-    const next: Theme = event.matches ? 'day' : 'night';
-    root.setAttribute('data-theme', next);
-    syncThemeUI(next);
+    // 用户没有手动选择时，跟随系统切换
+    const media = window.matchMedia('(prefers-color-scheme: light)');
+    media.addEventListener('change', (event) => {
+      try {
+        if (localStorage.getItem(THEME_KEY)) return;
+      } catch {
+        /* ignore */
+      }
+      applyTheme(event.matches ? 'day' : 'night');
+    });
   });
 }
 
@@ -454,23 +501,26 @@ function stopBgm(): void {
 }
 
 function initBgm(): void {
-  setBgmUI(false);
-  document.addEventListener('click', (event) => {
-    const target = event.target as Element | null;
-    if (!target) return;
+  // 切页之后按钮是新节点，把当前播放状态重新贴一遍
+  setBgmUI(bgmPlaying);
+  once('bgm', () => {
+    document.addEventListener('click', (event) => {
+      const target = event.target as Element | null;
+      if (!target) return;
 
-    if (target.closest('[data-bgm-toggle]')) {
-      if (bgmPlaying) stopBgm();
-      else void startBgm();
-      return;
-    }
+      if (target.closest('[data-bgm-toggle]')) {
+        if (bgmPlaying) stopBgm();
+        else void startBgm();
+        return;
+      }
 
-    const prev = target.closest('[data-bgm-prev]');
-    const next = target.closest('[data-bgm-next]');
-    if (!prev && !next) return;
-    switchTrack(prev ? -1 : 1);
-    // 没在播时按换曲，顺手把它放起来（老式收音机的手感）
-    if (!bgmPlaying) void startBgm();
+      const prev = target.closest('[data-bgm-prev]');
+      const next = target.closest('[data-bgm-next]');
+      if (!prev && !next) return;
+      switchTrack(prev ? -1 : 1);
+      // 没在播时按换曲，顺手把它放起来（老式收音机的手感）
+      if (!bgmPlaying) void startBgm();
+    });
   });
 }
 
@@ -677,60 +727,64 @@ function closeSearch(): void {
 }
 
 function initSearch(): void {
-  document.addEventListener('click', (event) => {
-    const target = event.target as Element | null;
-    if (!target) return;
-    if (target.closest('[data-search-open]')) {
-      event.preventDefault();
-      openSearch();
-      return;
-    }
-    if (target.closest('[data-search-close]')) {
-      event.preventDefault();
-      closeSearch();
-    }
-  });
-
   const input = $('#search-input') as HTMLInputElement | null;
   if (input) {
     input.addEventListener('input', () => renderSearchResults(input.value));
   }
 
-  document.addEventListener('keydown', (event) => {
-    const target = event.target as Element | null;
-    const tag = target?.tagName ?? '';
-    const typing = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable;
-    const modalOpen = !$('#search-modal')?.hidden;
-
-    if (event.key === 'Escape' && modalOpen) {
-      event.preventDefault();
-      closeSearch();
-      return;
-    }
-    if (modalOpen && input) {
-      if (event.key === 'ArrowDown') {
+  once('search', () => {
+    document.addEventListener('click', (event) => {
+      const target = event.target as Element | null;
+      if (!target) return;
+      if (target.closest('[data-search-open]')) {
         event.preventDefault();
-        setSearchActive(searchState.active + 1);
-      } else if (event.key === 'ArrowUp') {
-        event.preventDefault();
-        setSearchActive(searchState.active - 1);
-      } else if (event.key === 'Enter') {
-        const link = $all('#search-results a')[searchState.active];
-        if (link) {
-          event.preventDefault();
-          window.location.href = link.getAttribute('href') ?? '/';
-        }
+        openSearch();
+        return;
       }
-      return;
-    }
-    if (typing) return;
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-      event.preventDefault();
-      openSearch();
-    } else if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
-      event.preventDefault();
-      openSearch();
-    }
+      if (target.closest('[data-search-close]')) {
+        event.preventDefault();
+        closeSearch();
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      const target = event.target as Element | null;
+      const tag = target?.tagName ?? '';
+      const typing =
+        tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable;
+      const modalOpen = !$('#search-modal')?.hidden;
+      const field = $('#search-input') as HTMLInputElement | null;
+
+      if (event.key === 'Escape' && modalOpen) {
+        event.preventDefault();
+        closeSearch();
+        return;
+      }
+      if (modalOpen && field) {
+        if (event.key === 'ArrowDown') {
+          event.preventDefault();
+          setSearchActive(searchState.active + 1);
+        } else if (event.key === 'ArrowUp') {
+          event.preventDefault();
+          setSearchActive(searchState.active - 1);
+        } else if (event.key === 'Enter') {
+          const link = $all('#search-results a')[searchState.active];
+          if (link) {
+            event.preventDefault();
+            window.location.href = link.getAttribute('href') ?? '/';
+          }
+        }
+        return;
+      }
+      if (typing) return;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        openSearch();
+      } else if (event.key === '/' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+        event.preventDefault();
+        openSearch();
+      }
+    });
   });
 }
 
@@ -740,36 +794,52 @@ function initSearch(): void {
 
 function initScrollTop(): void {
   const button = $('[data-scroll-top]');
-  if (!button) return;
-  const update = () => button.classList.toggle('is-visible', window.scrollY > 480);
-  update();
-  window.addEventListener('scroll', update, { passive: true });
-  button.addEventListener('click', () => {
-    window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+  if (button) {
+    const setVisible = (): void =>
+      button.classList.toggle('is-visible', window.scrollY > 480);
+    setVisible();
+    button.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+    });
+  }
+
+  once('scroll-top', () => {
+    window.addEventListener(
+      'scroll',
+      () => {
+        $('[data-scroll-top]')?.classList.toggle('is-visible', window.scrollY > 480);
+      },
+      { passive: true },
+    );
   });
 }
 
 function initReadingProgress(): void {
-  const bar = $('.reading-progress');
-  const content = $('.post-content');
-  if (!bar || !content) return;
-  let ticking = false;
-  const update = () => {
+  const paint = (): void => {
+    const bar = $('.reading-progress');
+    const content = $('.post-content');
+    if (!bar || !content) return;
     const top = content.getBoundingClientRect().top + window.scrollY;
     const total = Math.max(1, content.offsetHeight);
     const progress = Math.min(1, Math.max(0, (window.scrollY + window.innerHeight * 0.5 - top) / total));
     bar.style.transform = `scaleX(${progress.toFixed(4)})`;
     bar.classList.toggle('is-done', progress > 0.995);
-    ticking = false;
   };
-  const onScroll = () => {
-    if (ticking) return;
-    ticking = true;
-    window.requestAnimationFrame(update);
-  };
-  update();
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll);
+
+  paint();
+  once('reading-progress', () => {
+    let ticking = false;
+    const onScroll = (): void => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        ticking = false;
+        paint();
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+  });
 }
 
 function initToc(): void {
@@ -808,6 +878,7 @@ function initToc(): void {
     { rootMargin: '-15% 0px -70% 0px', threshold: [0, 1] },
   );
   headings.forEach((heading) => observer.observe(heading));
+  onPageLeave(() => observer.disconnect());
 }
 
 /* ============================================================
@@ -900,19 +971,25 @@ function initSparkles(): void {
     else ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   };
 
-  window.addEventListener(
-    'pointermove',
-    (event) => {
-      if (event.pointerType && event.pointerType !== 'mouse') return;
-      const distance = Math.hypot(event.clientX - lastX, event.clientY - lastY);
-      if (lastX >= 0 && distance < 9) return;
-      lastX = event.clientX;
-      lastY = event.clientY;
-      spawn(event.clientX, event.clientY);
-      if (!raf) raf = window.requestAnimationFrame(animate);
-    },
-    { passive: true },
-  );
+  const onPointerMove = (event: PointerEvent): void => {
+    if (event.pointerType && event.pointerType !== 'mouse') return;
+    const distance = Math.hypot(event.clientX - lastX, event.clientY - lastY);
+    if (lastX >= 0 && distance < 9) return;
+    lastX = event.clientX;
+    lastY = event.clientY;
+    spawn(event.clientX, event.clientY);
+    if (!raf) raf = window.requestAnimationFrame(animate);
+  };
+
+  window.addEventListener('pointermove', onPointerMove, { passive: true });
+
+  onPageLeave(() => {
+    window.removeEventListener('resize', resize);
+    window.removeEventListener('pointermove', onPointerMove);
+    if (raf) window.cancelAnimationFrame(raf);
+    raf = 0;
+    particles.length = 0;
+  });
 }
 
 /* ============================================================
@@ -1204,39 +1281,41 @@ function initGuestbook(): void {
  * ========================================================== */
 
 function initCopyButtons(): void {
-  document.addEventListener('click', (event) => {
-    const target = event.target as Element | null;
-    const button = target?.closest<HTMLElement>('[data-copy]');
-    if (!button) return;
-    event.preventDefault();
-    const text = button.dataset.copy ?? '';
-    const finish = () => {
-      const original = button.dataset.original ?? button.textContent ?? '';
-      button.dataset.original = original;
-      button.textContent = '已复制 ✓';
-      button.classList.add('is-copied');
-      window.setTimeout(() => {
-        button.textContent = button.dataset.original ?? original;
-        button.classList.remove('is-copied');
-      }, 1600);
-    };
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(finish).catch(() => {
-        button.textContent = '复制失败';
-      });
-    } else {
-      const area = document.createElement('textarea');
-      area.value = text;
-      document.body.appendChild(area);
-      area.select();
-      try {
-        document.execCommand('copy');
-        finish();
-      } catch {
-        button.textContent = '复制失败';
+  once('copy', () => {
+    document.addEventListener('click', (event) => {
+      const target = event.target as Element | null;
+      const button = target?.closest<HTMLElement>('[data-copy]');
+      if (!button) return;
+      event.preventDefault();
+      const text = button.dataset.copy ?? '';
+      const finish = (): void => {
+        const original = button.dataset.original ?? button.textContent ?? '';
+        button.dataset.original = original;
+        button.textContent = '已复制 ✓';
+        button.classList.add('is-copied');
+        window.setTimeout(() => {
+          button.textContent = button.dataset.original ?? original;
+          button.classList.remove('is-copied');
+        }, 1600);
+      };
+      if (navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text).then(finish).catch(() => {
+          button.textContent = '复制失败';
+        });
+      } else {
+        const area = document.createElement('textarea');
+        area.value = text;
+        document.body.appendChild(area);
+        area.select();
+        try {
+          document.execCommand('copy');
+          finish();
+        } catch {
+          button.textContent = '复制失败';
+        }
+        area.remove();
       }
-      area.remove();
-    }
+    });
   });
 }
 
@@ -1288,78 +1367,109 @@ function initExternalLinks(): void {
  * 9. 标签页标题彩蛋（切走时碎碎念，回来时打招呼）
  * ========================================================== */
 
+const TAB_AWAY_LINES = [
+  '(´･ω･`) 电波断了…',
+  '喂——信号还在吗？',
+  '月面观测站 · 0 人在线',
+  '这里有点冷，快点开我',
+  '碎碎念又更新了哦',
+  '(；´Д`) 别走那么久嘛',
+];
+const TAB_WELCOME = 'おかえりなさい ✦';
+const TAB_INTERVAL = 2800;
+const TAB_WELCOME_HOLD = 1500;
+
+let tabTitleOriginal = '';
+let tabCycleTimer = 0;
+let tabRestoreTimer = 0;
+let tabCycleIndex = 0;
+let tabCycling = false;
+
+function tabStopCycling(): void {
+  if (tabCycleTimer) {
+    window.clearInterval(tabCycleTimer);
+    tabCycleTimer = 0;
+  }
+  tabCycling = false;
+}
+
+function tabStartCycling(): void {
+  if (tabCycling || !tabTitleOriginal) return;
+  tabCycling = true;
+  tabCycleIndex = 0;
+  document.title = TAB_AWAY_LINES[0] ?? '';
+  if (prefersReducedMotion) return;
+  tabCycleTimer = window.setInterval(() => {
+    tabCycleIndex = (tabCycleIndex + 1) % TAB_AWAY_LINES.length;
+    document.title = TAB_AWAY_LINES[tabCycleIndex] ?? '';
+  }, TAB_INTERVAL);
+}
+
+function tabHandleAway(): void {
+  if (tabRestoreTimer) {
+    window.clearTimeout(tabRestoreTimer);
+    tabRestoreTimer = 0;
+  }
+  tabStartCycling();
+}
+
+function tabHandleBack(): void {
+  if (!tabCycling) return;
+  tabStopCycling();
+  document.title = TAB_WELCOME;
+  tabRestoreTimer = window.setTimeout(() => {
+    document.title = tabTitleOriginal;
+    tabRestoreTimer = 0;
+  }, TAB_WELCOME_HOLD);
+}
+
 function initTabTitle(): void {
-  const original = document.title;
-  if (!original) return;
+  tabTitleOriginal = document.title;
+  if (!tabTitleOriginal) return;
 
-  const AWAY_LINES = [
-    '(´･ω･`) 电波断了…',
-    '喂——信号还在吗？',
-    '月面观测站 · 0 人在线',
-    '这里有点冷，快点开我',
-    '碎碎念又更新了哦',
-    '(；´Д`) 别走那么久嘛',
-  ];
-  const WELCOME = 'おかえりなさい ✦';
-  const INTERVAL = 2800;
-  const WELCOME_HOLD = 1500;
+  once('tab-title', () => {
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) tabHandleAway();
+      else tabHandleBack();
+    });
 
-  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let timer = 0;
-  let restoreTimer = 0;
-  let index = 0;
-  let cycling = false;
-
-  const stopCycling = (): void => {
-    if (timer) {
-      window.clearInterval(timer);
-      timer = 0;
-    }
-    cycling = false;
-  };
-
-  const startCycling = (): void => {
-    if (cycling) return;
-    cycling = true;
-    index = 0;
-    document.title = AWAY_LINES[0];
-    if (calm) return;
-    timer = window.setInterval(() => {
-      index = (index + 1) % AWAY_LINES.length;
-      document.title = AWAY_LINES[index];
-    }, INTERVAL);
-  };
-
-  const handleAway = (): void => {
-    if (restoreTimer) {
-      window.clearTimeout(restoreTimer);
-      restoreTimer = 0;
-    }
-    startCycling();
-  };
-
-  const handleBack = (): void => {
-    if (!cycling) return;
-    stopCycling();
-    document.title = WELCOME;
-    restoreTimer = window.setTimeout(() => {
-      document.title = original;
-      restoreTimer = 0;
-    }, WELCOME_HOLD);
-  };
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) handleAway();
-    else handleBack();
+    // 某些浏览器/双窗口场景下 visibilitychange 不触发，用 blur 兜底
+    window.addEventListener('blur', () => {
+      if (!document.hidden) return;
+      tabHandleAway();
+    });
+    window.addEventListener('focus', () => {
+      if (!document.hidden) tabHandleBack();
+    });
   });
+}
 
-  // 某些浏览器/双窗口场景下 visibilitychange 不触发，用 blur 兜底
-  window.addEventListener('blur', () => {
-    if (!document.hidden) return;
-    handleAway();
-  });
-  window.addEventListener('focus', () => {
-    if (!document.hidden) handleBack();
+/* ============================================================
+ * 10. 页面切换：顶部进度条 + 离场清理
+ * ========================================================== */
+
+function initNavProgress(): void {
+  once('nav-progress', () => {
+    document.addEventListener(EVENT_BEFORE_PREPARE, () => {
+      const bar = $('.nav-progress');
+      if (!bar) return;
+      bar.classList.remove('is-done');
+      bar.classList.add('is-loading');
+    });
+
+    document.addEventListener(EVENT_PAGE_LOAD, () => {
+      const bar = $('.nav-progress');
+      if (!bar) return;
+      bar.classList.remove('is-loading');
+      bar.classList.add('is-done');
+      window.setTimeout(() => bar.classList.remove('is-done'), 460);
+    });
+
+    // 旧页面的观察者/RAF/window 监听在这里一次性拆掉
+    document.addEventListener(EVENT_BEFORE_SWAP, () => {
+      runPageCleanups();
+      document.body.classList.remove('is-locked');
+    });
   });
 }
 
@@ -1369,6 +1479,7 @@ function init(): void {
     ['theme', initTheme],
     ['bgm', initBgm],
     ['search', initSearch],
+    ['nav-progress', initNavProgress],
     ['scroll-top', initScrollTop],
     ['reading-progress', initReadingProgress],
     ['toc', initToc],
@@ -1389,8 +1500,13 @@ function init(): void {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init, { once: true });
-} else {
+// ClientRouter 每次换页（含首次加载）都会触发 astro:page-load。
+// 每个 <body> 只初始化一次，避免同一页被初始化两遍（表单会重复提交）。
+function boot(): void {
+  if (document.body.dataset.booted === '1') return;
+  document.body.dataset.booted = '1';
   init();
 }
+
+document.addEventListener(EVENT_PAGE_LOAD, boot);
+if (document.readyState !== 'loading') boot();

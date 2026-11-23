@@ -16,8 +16,8 @@ export const SITE = {
   themeColor: '#ff6ec7',
   since: '2026.09',
   author: {
-    name: '小星',
-    handle: 'hoshi',
+    name: '安媞莉娅',
+    handle: 'anthelia',
     avatar: '/img/avatar.png',
     bio: '光电专业大一 / 业余前端 / 深夜动画放映员',
     location: '某座靠海的城市',

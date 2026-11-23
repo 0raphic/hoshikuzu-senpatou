@@ -509,9 +509,30 @@ html[data-theme='day'] .site-header {
 .brand__text strong {
   font-family: var(--font-pixel);
   font-size: 24px;
-  letter-spacing: 0.12em;
+  line-height: 1.15;
+  /* 像素字体的字身是 12px 网格，字距用整数像素才不会把笔画挤花 */
+  letter-spacing: 2px;
   color: var(--ink-strong);
-  text-shadow: 2px 2px 0 var(--shadow);
+  /* 斜向硬投影会和笔画叠在一起，改成「垂直一层落影 + 一层极淡外发光」 */
+  text-shadow:
+    0 2px 0 var(--shadow-soft),
+    0 0 14px rgba(244, 163, 216, 0.28);
+  transition:
+    color 0.22s ease,
+    text-shadow 0.22s ease;
+}
+
+.brand:hover .brand__text strong {
+  color: #ffffff;
+  text-shadow:
+    0 3px 0 var(--shadow-soft),
+    0 0 18px rgba(150, 226, 244, 0.5);
+}
+
+html[data-theme='day'] .brand__text strong {
+  text-shadow:
+    0 2px 0 rgba(74, 52, 104, 0.22),
+    0 0 12px rgba(221, 93, 156, 0.16);
 }
 
 .brand__text small {
@@ -1946,4 +1967,67 @@ html[data-theme='day'] .search-modal__backdrop {
 
 .pixel-btn:active {
   box-shadow: 0 0 0 rgba(8, 5, 21, 0.5);
+}
+
+/* ============================================================
+ * 页面切换：顶部进度条 + View Transition 交叉淡化
+ * ========================================================== */
+
+.nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  z-index: 9500;
+  pointer-events: none;
+  opacity: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--cyan), var(--pink) 45%, var(--yellow));
+  box-shadow: 0 0 10px rgba(244, 163, 216, 0.45);
+}
+
+.nav-progress.is-loading {
+  opacity: 1;
+  transform: scaleX(0.72);
+  transition:
+    transform 1.8s cubic-bezier(0.18, 0.86, 0.24, 1),
+    opacity 0.12s ease-out;
+}
+
+.nav-progress.is-done {
+  opacity: 1;
+  transform: scaleX(1);
+  transition: transform 0.18s ease-out;
+}
+
+@keyframes vt-out {
+  to {
+    opacity: 0;
+    transform: scale(1.006);
+  }
+}
+
+@keyframes vt-in {
+  from {
+    opacity: 0;
+    transform: scale(1.012);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) {
+    animation: vt-out 180ms ease-out both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-in 300ms cubic-bezier(0.22, 0.9, 0.24, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
 }
