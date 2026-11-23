@@ -620,7 +620,7 @@ html[data-theme='day'] .hero {
 }
 
 .repo-mini__name {
-  /* 名字不压缩也不折行：hoshikuzu-denpatou 这种带连字符的会被拆成两行 */
+  /* 名字不许折行：hoshikuzu-denpatou 这种带连字符的会被拆成两行 */
   flex: 0 1 auto;
   min-width: 0;
   max-width: 62%;
