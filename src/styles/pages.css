@@ -603,12 +603,15 @@ html[data-theme='day'] .hero {
 
 .repo-mini__item {
   display: flex;
-  align-items: baseline;
+  /* 原来是 baseline：名字一旦折行，星星和描述就跟着对到首行基线，看着像错位 */
+  align-items: center;
   gap: 8px;
   padding: 8px 10px;
+  min-width: 0;
   background: var(--panel-2);
   border: 1px solid var(--line);
   text-decoration: none;
+  overflow: hidden;
 }
 
 .repo-mini__item:hover {
@@ -617,13 +620,25 @@ html[data-theme='day'] .hero {
 }
 
 .repo-mini__name {
+  /* 名字不压缩也不折行：hoshikuzu-denpatou 这种带连字符的会被拆成两行 */
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 62%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   font-family: var(--font-pixel);
   font-size: 12px;
+  line-height: 1.5;
   color: var(--cyan);
 }
 
 .repo-mini__desc {
+  /* 只有描述可以伸缩、可以省略号截断 */
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 11px;
+  line-height: 1.4;
   color: var(--faint);
   overflow: hidden;
   white-space: nowrap;
@@ -631,10 +646,14 @@ html[data-theme='day'] .hero {
 }
 
 .repo-mini__star {
+  /* 星星永远完整显示，不再被描述顶出去 */
+  flex: 0 0 auto;
   margin-left: auto;
   font-family: var(--font-pixel);
   font-size: 10px;
+  line-height: 1.4;
   color: var(--yellow);
+  white-space: nowrap;
 }
 
 /* 首页底部 CTA */
@@ -1200,12 +1219,15 @@ html[data-theme='day'] .timeline__item::before {
 }
 
 .repo-card__name {
+  min-width: 0;
   font-family: var(--font-pixel);
   font-size: 14px;
-  letter-spacing: 0.02em;
+  /* 像素字体用整数像素字距，0.02em 会把笔画糊掉一点 */
+  letter-spacing: 0;
   color: var(--cyan);
   text-decoration: none;
-  word-break: break-all;
+  /* break-all 会在词中间硬断，改成只在实在放不下时才断 */
+  overflow-wrap: anywhere;
 }
 
 .repo-card__name:hover {
@@ -1213,6 +1235,7 @@ html[data-theme='day'] .timeline__item::before {
 }
 
 .repo-card__pin {
+  flex: 0 0 auto;
   margin-left: auto;
   font-family: var(--font-pixel);
   font-size: 9px;
@@ -1271,12 +1294,14 @@ html[data-theme='day'] .timeline__item::before {
 }
 
 .repo-card__wip {
+  flex: 0 0 auto;
   margin-left: auto;
   font-family: var(--font-pixel);
   font-size: 9px;
   color: var(--cyan);
   border: 1px solid var(--cyan);
   padding: 0 4px;
+  white-space: nowrap;
 }
 
 .repo-card__pin + .repo-card__wip {
@@ -1284,11 +1309,13 @@ html[data-theme='day'] .timeline__item::before {
 }
 
 .repo-card__archived {
+  flex: 0 0 auto;
   font-family: var(--font-pixel);
   font-size: 9px;
   color: var(--red);
   border: 1px solid var(--red);
   padding: 0 4px;
+  white-space: nowrap;
 }
 
 /* ---------- 归档 / 标签 ---------- */
